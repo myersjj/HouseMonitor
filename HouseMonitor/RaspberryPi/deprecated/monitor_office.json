@@ -1,0 +1,27 @@
+{
+	"tick_interval": 30,
+	"green_pin": 4,
+	"red_pin": 17,
+	"monitor_temp": 
+	{
+		"ticks": 1,
+		"pin": 23,
+		"temp_range": 
+		{
+			"high": 75,
+			"low": 65
+		},
+
+		"humidity_range": 
+		{
+			"high": 60,
+			"low": 35
+		}
+	},
+
+	"monitor_motion": 
+	{
+		"ticks": 4,
+		"pin": 18
+	}
+}

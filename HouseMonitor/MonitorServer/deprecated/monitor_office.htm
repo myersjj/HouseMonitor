@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>PiMonitorServer - Plot of logged temperature</title>
+<meta name="description"
+	content="Plot of temperature from AM2302 sensor connected to Raspberry Pi">
+<meta name="author" content="James Myers">
+<meta name="version" content="0.1">
+<script src="http://code.jquery.com/jquery-1.8.3.min.js"
+	type="text/javascript"></script>
+<script src="//code.jquery.com/ui/1.11.3/jquery-ui.js" type="text/javascript"></script>
+<script src="http://code.highcharts.com/highcharts.js"
+	type="text/javascript"></script>
+<script type="text/javascript">
+var MAX_DUMP_DEPTH = 10;
+
+	function dumpObj(obj, name, indent, depth) {
+		if (depth > MAX_DUMP_DEPTH) {
+			return indent + name + ": <Maximum Depth Reached>\n";
+		}
+		if (typeof obj == "object") {
+			var child = null;
+			var output = indent + name + "\n";
+			indent += "\t";
+			for ( var item in obj)
+			{
+				try {
+					child = obj[item];
+				} catch (e) {
+					child = "<Unable to Evaluate>";
+				}
+				if (typeof child == "object") {
+					output += dumpObj(child, item, indent, depth + 1);
+				} else {
+					output += indent + item + ": " + child + "\n";
+				}
+			}
+			return output;
+		} else {
+			return obj;
+		}
+	}
+
+	var chart; // global chart variable
+	// Get data from server in JSON format (query time series when sensor was outside).
+	function getData(startDate, endDate) {
+		$
+				.getJSON(
+						'/monitor_query.json?num_obs=-1&start_date='
+								+ startDate + '&end_date=' + endDate,
+						function(data) {
+							var seriesTemp = {
+								id : 'seriesTemp',
+								color : 'red',
+								lineWidth : 3,
+								name : 'AM2302 temperature (\u00B10.5\u00B0C)',
+								type : 'line',
+								data : []
+							};
+							var seriesHumidity = {
+								id : 'seriesHumidity',
+								color : 'green',
+								lineWidth : 3,
+								name : 'AM2302 humidity (\u00B10.5\u00B0%)',
+								type : 'line',
+								data : []
+							};
+							var seriesMotion = {
+								id : 'seriesMotion',
+								color : 'black',
+								lineWidth : 3,
+								name : 'PIR',
+								type : 'line',
+								data : [],
+								step: 'left' // or 'center' or 'right'
+							};
+							var i = 0;
+							// Iterate JSON data series and add to plot
+							//console.log(dumpObj(data, "data", " ", 2));
+							//console.log(dumpObj(data.monitor_data, "monitor_data", " ", 2));
+							//console.log(dumpObj(data.monitor_data.temperature_record, "temp data", " ", 2)
+							//		+ data.monitor_data.temperature_record);
+							while (data.monitor_data.temperature_record[0][i]) {
+								var mdate = new Date(data.monitor_data.temperature_record[0][i][2]);
+								console.log('mdate=' + mdate);
+								var ctime = mdate.getTime()/1000;  // time in ms converted to sec
+								//console.log('record ' + i + ' + ctime=' + ctime);
+								// convert time to midnight
+								//ctime = ctime - (ctime % (60 * 60 * 24));
+								for (var j = 17; j < (17 + 48); j += 2) {
+									//console.log('ctime=' + ctime);
+									var temp = parseFloat(data.monitor_data.temperature_record[0][i][j]);
+									var humidity = parseFloat(data.monitor_data.temperature_record[0][i][j + 1]);
+									if (temp > 0.0) {
+										seriesTemp.data.push([ ctime * 1000,
+												temp ]);
+										seriesHumidity.data.push([
+												ctime * 1000, humidity ]);
+									}
+									ctime += (60 * 60);
+								}
+								i++;
+							}
+							while (data.monitor_data.motion_record[0][i]) {
+								var ctime = parseInt(data.monitor_data.motion_record[0][i][1]);
+								var today = new Date();
+								var tz = today.getTimezoneOffset();
+								//convert ctime from UTC to local
+								var ltime = ctime - tz * 60;
+								var motion = parseInt(data.monitor_data.motion_record[0][i][4]);
+								//console.log('motion record ' + i + ' + ctime=' + ctime + ' status=' + motion);
+								seriesMotion.data.push([ ltime * 1000, motion*25 ]);
+								i++;
+							}
+							chart.addSeries(seriesTemp);
+							chart.addSeries(seriesHumidity);
+							chart.addSeries(seriesMotion);
+						});
+	}
+	function doChart(startDate, endDate) {
+		console.log('startDate=' + startDate + ' endDate=' + endDate);
+		var d = new Date();
+		chart = new Highcharts.Chart(
+				{
+					global: {
+						useUTC : false,
+						timezoneOffset : d.getTimezoneOffset()
+					},
+					chart : {
+						renderTo : 'container',
+						//type: 'spline',
+						zoomType : 'x',
+						spaceRight : 20,
+						events : {
+							load : getData(startDate, endDate)
+						}
+					},
+					title : {
+						text : 'Temperature/humidity/motion for Jim\'s office from Raspberry Pi logger'
+					},
+					subtitle : {
+						text : 'Click and drag in the plot area to zoom in',
+						align : 'right',
+					},
+
+					xAxis : {
+						type : 'datetime',
+						tickPixelInterval : 150,
+						maxZoom : 20 * 1000,
+						title : {
+							text : 'Time',
+							margin : 15
+						}
+					},
+					yAxis : {
+						minPadding : 0.2,
+						maxPadding : 0.2,
+						showFirstLabel : false,
+						title : {
+							text : 'Temperature \u00B0F',
+							margin : 15
+						}
+					},
+					plotOptions : {
+						area : {
+							fillColor : {
+								linearGradient : {
+									x1 : 0,
+									y1 : 0,
+									x2 : 0,
+									y2 : 1
+								},
+								stops : [
+										[ 0, Highcharts.getOptions().colors[0] ],
+										[ 1, 'rgba(2,0,0,0)' ], ]
+							},
+							lineWidth : 1,
+							marker : {
+								enabled : false,
+								states : {
+									hover : {
+										enabled : true,
+										radius : 5
+									}
+								}
+							},
+							shadow : false,
+							states : {
+								hover : {
+									lineWidth : 1
+								}
+							},
+							threshold : null
+						},
+
+					},
+				})
+	}
+</script>
+
+<script type="text/javascript">
+	// Configure the plot
+	$(document)
+			.ready(
+					function() {
+						$( "#datepicker1" ).datepicker({
+							  defaultDate: -7
+							});
+						$( "#datepicker1" ).datepicker("setDate", '0');
+						$( "#datepicker2" ).datepicker({
+							  defaultDate: +0
+							});
+						$( "#datepicker2" ).datepicker("setDate", '0');
+						$("#dateButton").click( function()
+						    {
+							var sd, ed, fsd, fed;
+							sd = $( "#datepicker1" ).datepicker("getDate");
+							fsd = sd.toISOString().slice(0, 10);
+							ed = $( "#datepicker2" ).datepicker("getDate");
+							fed = ed.toISOString().slice(0, 10);
+								new Date()
+						             doChart(fsd, fed);
+						           }
+						        );
+					});
+</script>
+</head>
+
+<body>
+	<div>
+		Start date: <input type="text" id="datepicker1">
+		End Date: <input type="text" id="datepicker2">
+		<button id="dateButton">Show data</button>
+	</div>
+	<div id="container" style="width: 100%; height: 400px"></div>
+</body>
+</html>

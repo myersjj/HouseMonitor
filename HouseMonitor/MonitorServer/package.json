@@ -1,0 +1,34 @@
+{
+  "name": "MonitorServer",
+  "version": "0.0.1",
+  "description": "Simple NodeJS server and SQLite3 logger for the DS18B20 digital temperature sensor on the Raspberry Pi.",
+  "main": "monitorServer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node monitorServer.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/myersjj/PiMonitorServer.git"
+  },
+  "keywords": [
+    "Raspberry",
+    "Pi",
+    "Temperature",
+    "Humidity",
+    "Server",
+    "DS18B20",
+    "GPIO",
+    "Sensor"
+  ],
+  "author": "James Myers",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/myersjj/PiMonitorServer/issues"
+  },
+  "homepage": "https://github.com/myersjj/PiMonitorServer",
+  "dependencies": {
+    "sqlite3": "~2.1.19",
+    "node-static": "~0.7.3"
+  }
+}
