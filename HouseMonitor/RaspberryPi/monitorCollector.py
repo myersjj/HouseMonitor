@@ -51,7 +51,7 @@ class ArduinoThread(threading.Thread):
         global queue, tickCounter, stopThread, motionTicks, motionDetected
 
         # Open the serial Port
-        ser = serial.Serial('/dev/ttyAMA0', 9600, timeout=0)
+        ser = serial.Serial('/dev/ttyAMA0', 9600, timeout=30)
         ser.flushInput()  # Clear the input buffer
         try:
             while True:
