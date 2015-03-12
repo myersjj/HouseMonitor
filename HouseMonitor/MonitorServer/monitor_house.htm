@@ -25,6 +25,37 @@ function convertUTCDateToLocalDate(date) {
     return newDate;   
 }
 
+//Get data from server in JSON format .
+function showLocations() {
+    $
+            .getJSON(
+                    '/getLocations.json',
+                    function(data) {
+                        var i = 0;
+                        // Iterate JSON data and display on screen
+                        //console.log(dumpObj(data, "data", " ", 2));
+                        //console.log(data.monitor_data.location_record[0][0].id);
+                        if (data.monitor_data.location_record.length == 0) return;
+                        $( "#locationsDiv" ).empty();
+                        $( "<select id=\"locationId\" required>" ).insertAfter( "#locationsDiv" );
+                        while (data.monitor_data.location_record[0][i]) {
+                            var lid = data.monitor_data.location_record[0][i].id;
+                            var lname= data.monitor_data.location_record[0][i].locationName;
+                            console.debug('location ' + lid +
+                                    '=' + lname + ':');
+                            var select = $('#locationId');
+                            if (select.prop)
+                                var options = select.prop('options');
+                            else
+                            	var options = select.attr('options');
+                            console.debug('options=' + options);
+                            options[options.length] = new Option(lname, lid, true, true);
+                            i++;
+                        }
+                        //$( "</select>" ).insertAfter( "#locationId" );
+                    });
+}
+
     function getLocationId() {
     	return $("#locationId option:selected").val();
     }
@@ -300,6 +331,7 @@ function convertUTCDateToLocalDate(date) {
 							    doChart(ldate.slice(0, 10), ldate.slice(0, 10));
 							}
 						);
+						showLocations();
 					});
 </script>
 </head>
@@ -307,11 +339,8 @@ function convertUTCDateToLocalDate(date) {
 <body>
 	<div>
 	   <div>Select Location: 
-	       <select id="locationId" required>
-            <option value="1">Desk</option>
-            <option value="2" selected>Jim office</option>
-            <option value="3">Front porch</option>
-           </select>
+	       <div id="locationsDiv"></div>
+           <a href="manageLocations.htm"><button id="manageLocations">Manage Locations</button></a>
 	   </div>
 		Start date: <input type="text" id="datepicker1">
 		End Date: <input type="text" id="datepicker2">

@@ -130,6 +130,15 @@ def open_db(db_name):
         createTable += ");"
         cur.execute(createTable)
         con.commit()
+    try:
+        cur.execute("SELECT * FROM Location where id=1")
+        # rows = cur.fetchall()
+    except:
+        # initialize the new table
+        createTable = "CREATE TABLE Location(Id INTEGER PRIMARY KEY, LocationName TEXT"
+        createTable += ");"
+        cur.execute(createTable)
+        con.commit()
     # sys.exit(1)
     return con
 

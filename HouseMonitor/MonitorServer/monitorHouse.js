@@ -18,7 +18,7 @@ var logger = log4js.getLogger();
 var http = require('http');
 var dblite = require('dblite');
 
-// Use node-static module to server chart for client-side dynamic graph
+// Use node-static module to serve chart for client-side dynamic graph
 var nodestatic = require('node-static');
 
 // Setup static server for current directory
@@ -58,8 +58,7 @@ function dumpObj(obj, name, indent, depth) {
 
 // Get temperature records from database
 function selectTemp(response, locationId, num_records, start_date, end_date, callback) {
-	// - Num records is an SQL filter from latest record back through time
-	// series,
+	// - Num records is an SQL filter from latest record back through time series,
 	// - start_date is the first date in the time-series required,
 	// - callback is the output function
 	// unix_time is UTC, so convert to local: datetime(strftime('%s','now'), 'unixepoch', 'localtime')
@@ -88,8 +87,7 @@ function selectTemp(response, locationId, num_records, start_date, end_date, cal
 
 //Get motion records from database
 function selectMotion(response, locationId, num_records, start_date, end_date, callback) {
-	// - Num records is an SQL filter from latest record back through time
-	// series,
+	// - Num records is an SQL filter from latest record back through time series,
 	// - start_date is the first date in the time-series required,
 	// - callback is the output function
 	var current_motion = db
@@ -113,6 +111,107 @@ function selectMotion(response, locationId, num_records, start_date, end_date, c
 					});
 };
 
+//Get location records from database
+function selectLocations(response, callback) {
+	// - callback is the output function
+	var current_motion = db
+			.query(
+					"SELECT * FROM Location ORDER BY id;",
+					[ ], {
+					    id: Number,
+					    locationName: String
+					  }, 
+					  function(err, rows) {
+						if (err) {
+							response.writeHead(500, {
+								"Content-type" : "text/html"
+							});
+							response.end(err + "\n");
+							console.log('Error serving querying database. '
+									+ err);
+							return;
+						}
+						console.log(rows.length);
+						if (rows.length > 0 ) {
+							console.log(rows[0]);
+							data = {
+									location_record : [ rows ]
+							}
+						} else data = {};
+						callback(data);
+					});
+};
+
+function addLocation(json) {
+	try {
+		console.log('add new location=' + json.newName);
+		db.query("SELECT max(Id) FROM Location", [], {id: Number}, function(err, rows) {
+			if (err) {
+				response.writeHead(500, {
+					"Content-type" : "text/html"
+				});
+				response.end(err + "\n");
+				console.log('Error serving querying database. '
+						+ err);
+				return;
+			}
+			console.log(rows.length);
+			var newId = 1;
+			if (rows.length > 0) newId = rows[0].id + 1;
+			db.query('BEGIN');
+			db.query(
+					  'INSERT INTO Location VALUES (:id, :locationname)',
+					  {
+					    id: newId,
+					    locationname: json.newName
+					  }
+					);
+			db.query('COMMIT');
+			console.log("inserted new locationid " + newId + ":" + json.newName);
+		});
+	} catch (e) {
+		console.log('do addLocation failed:' + e);
+	}
+}
+
+function updateLocation(json) {
+	try {
+		console.log('update location=' + json.id);
+		db.query('BEGIN');
+		db.query('UPDATE Location SET locationname=:locationname WHERE id=:id',
+					  {
+					    id: json.id,
+					    locationname: json.name
+					  }
+					);
+		db.query('COMMIT');
+		console.log("updated locationid " + json.id + ":" + json.name);
+	} catch (e) {
+		console.log('do updateLocation failed:' + e);
+	}
+}
+
+function handlePost(request, response, pathfile, json) {
+	if (pathfile == '/addLocation.json') {
+		console.log('handle addLocation');
+		addLocation(json);
+		response.writeHead(200, {
+				"Content-type" : "application/json"
+		});
+		response.end();
+		return;
+	}
+	if (pathfile == '/updateLocation.json') {
+		console.log('handle updateLocation');
+		updateLocation(json);
+		response.writeHead(200, {
+				"Content-type" : "application/json"
+		});
+		response.end();
+		return;
+	}
+}
+
 // Setup node http server
 var server = http.createServer(
 // Our main server function
@@ -121,7 +220,19 @@ function(request, response) {
 	var url = require('url').parse(request.url, true);
 	var pathfile = url.pathname;
 	var query = url.query;
-	console.log('path=' + pathfile + dumpObj(query, '\nquery', 2, 5));
+	console.log('path=' + pathfile + '\n\t' + dumpObj(query, 'query', 2, 5));
+	
+	if ( request.method === 'POST' ) {
+        // the body of the POST is JSON payload.
+        var data = '';
+        request.addListener('data', function(chunk) { data += chunk; });
+        request.addListener('end', function() {
+            json = JSON.parse(data);
+            console.log(dumpObj(json, 'json', 2, 5));
+            handlePost(request, response, pathfile, json);
+        });
+        return;
+    }
 
 	// Test to see if it's a database query
 	if (pathfile == '/monitor_house.json') {
@@ -193,6 +304,22 @@ function(request, response) {
 				};
 				response.end(JSON.stringify(data), "ascii");
 			}
+		});
+		return;
+	}
+	
+	if (pathfile == '/getLocations.json') {
+		// call selectLocations function to get data from database
+		selectLocations(response, function(data) {
+			if (callbacks == 0) {
+				response.writeHead(200, {
+					"Content-type" : "application/json"
+				});
+			}
+			callbacks++;
+			data = { monitor_data : data
+			};
+			response.end(JSON.stringify(data), "ascii");
 		});
 		return;
 	}
