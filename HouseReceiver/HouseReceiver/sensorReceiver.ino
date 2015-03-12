@@ -1,8 +1,7 @@
 #include <SPI.h>
 #include <RF24.h>
 #include <printf.h>
-#include <ArduinoJson.h>
-#include <Wire.h>
+//#include <ArduinoJson.h>
 
 #define LED 4
 #define RF_CS 9
@@ -11,7 +10,7 @@
 #define I2C_ADDRESS 0x04
 
 RF24 radio(RF_CS, RF_CSN);
-const uint64_t pipes[2] = { 0xe7e7e7e7e7LL, 0xc2c2c2c2c2LL }; // opposite of sensor
+const uint64_t pipes[2] = { 0xABCDABCD71LL, 0xc2c2c2c2c2LL }; // opposite of sensor
 
 char message[128] = { 0 };
 
@@ -32,53 +31,26 @@ void setup()
   blink(1);
   randomSeed (analogRead(A0));  //initialize the random number generator with
                                 //a random read from an unused and floating analog port
-  Wire.begin(I2C_ADDRESS);
-  Wire.onReceive(receiveEvent); // register event
-  Wire.onRequest(requestEvent); // register event
   radio.begin();
   // enable dynamic payloads
   radio.enableDynamicPayloads();
+  radio.enableAckPayload();
+  radio.setAutoAck(true);
 
   // optionally, increase the delay between retries & # of retries
-  radio.setRetries(5,15);
+  //radio.setRetries(5,15);
   radio.openWritingPipe(pipes[0]);
   radio.openReadingPipe(1, pipes[1]);
   radio.startListening();
   //radio.printDetails();
 }
 
-// function that executes whenever data is requested by master
-// this function is registered as an event, see setup()
-void requestEvent()
-{
-  uint8_t msgLen = strlen(message);
-  Serial.print("Sending: "); Serial.println(message);
-  for (int i=0; i<msgLen; i+=32) {
-    int sent = Wire.write(&message[i], min(32, msgLen-i));
-    Serial.print("Sent count="); Serial.println(sent);
-    Serial.println(&message[i]);
-  }
-  Serial.println("Message sent");
-}
-
-void receiveEvent(int howMany) {
-  Serial.print("receive available()="); Serial.println(howMany);
-  return;
-  while(Wire.available())    // slave may send less than requested
-  { 
-    uint8_t c = Wire.read();    // receive a byte as character
-    if (c != 255) {
-      Serial.print((char)c);         // print the character
-    }
-  }
-  Serial.println();
-}
 
 void loop() {
 	blink(2);
 	    uint8_t rx_data[36];  // we'll receive a packet
             message[128] = { 0 };
-            StaticJsonBuffer<200> jsonBuffer;
+            //StaticJsonBuffer<200> jsonBuffer;
             unsigned long started_waiting_at = micros(); 
             uint8_t len = 0;
             uint8_t bytesReceived = 0;
@@ -105,7 +77,7 @@ void loop() {
                 msgLength = 0;
                 while (!msgComplete) {
                   len = radio.getDynamicPayloadSize();     
-                  Serial.print("Got len="); Serial.println(len); 
+                  //Serial.print("Got len="); Serial.println(len); 
                   
                   // If a corrupt dynamic payload is received, it will be flushed
                   if(!len){
@@ -113,45 +85,32 @@ void loop() {
                     return; 
                   }
                   radio.read( &rx_data[0], len );
-                  Serial.println("Read data...");
-                  Serial.print("First char="); Serial.println((char)rx_data[0]);
+                  //Serial.println("Read data...");
+                  //Serial.print("First char="); Serial.println((char)rx_data[0]);
                   // Put a zero at the end for easy printing
                   rx_data[len] = 0;
                   if (len == 1 and rx_data[0] == 0x00)
                   { 
-                      Serial.println("Got terminator...");
+                      //Serial.println("Got terminator...");
                       msgComplete = true;
                   }
                   
                   // assemble message
                   memcpy(&message[msgLength], rx_data, len);
                   msgLength += len;
-                  Serial.print("Message..."); Serial.println(msgLength);
-                  Serial.println(message);
                   bytesReceived += len;
                 } 
             }
-            
-	    // echo it back real fast
-	    radio.stopListening();
-            radio.setPayloadSize(16);
-	    radio.write( &message[0], 16 );
-	    Serial.println("Sent response.");
-
-	    radio.startListening();
-            Serial.print("Message..."); Serial.println(msgLength);
-            Serial.println(message);
-
-            JsonObject& root = jsonBuffer.parseObject((char*)&message);
+            //Serial.print("Message in="); Serial.println(msgLength);
+            Serial.println(message);  // sends json data to the pi for handling
+#if 0
+            JsonObject& root = jsonBuffer.parseObject((char*)&message); // destroys message it appears
             if (!root.success())
             {
               Serial.println("parseObject() failed");
+              delay(10000);
               return;
             }
-
-	    // pass json data to the Raspberry Pi
-            int id = root["id"];
-            Serial.print("id="); Serial.print(id); Serial.println();
-            
+#endif
 	delay(10000);
 }
