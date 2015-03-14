@@ -1,5 +1,7 @@
-#include <SPI.h>
+// House sensor sketch - James J Myers
+#include <RF24Network.h>
 #include <RF24.h>
+#include <SPI.h>
 #include <printf.h>
 #include <JeeLib.h>
 #include <DHT.h>
@@ -22,15 +24,20 @@
 //The ID will be transmitted with the data so you can tell which device is transmitting
 
 RF24 radio(RF_CS, RF_CSN);
-const uint64_t pipes[2] = { 0xc2c2c2c2c2LL, 0xABCDABCD71LL };  // opposite in receiver
+RF24Network network(radio);          // Network uses that radio
+const uint16_t this_node = 01;        // Address of our node in Octal format
+const uint16_t base_node = 00;       // Address of the other node in Octal format
+
 DHT dht(DHT_PIN, DHTTYPE);
+
+boolean motionDetected = false;
 
 //ISR(WDT_vect) {
 //	Sleepy::watchdogEvent();
 //} // Setup the watchdog
 
 void setup() {
-	Serial.begin(9600);
+	Serial.begin(57600);
 	printf_begin();
 	pinMode(LED, OUTPUT);
 	if (PIR_PIN > 0) {
@@ -47,15 +54,7 @@ void setup() {
 	dht.begin();
 	Serial.println("Starting radio...");
 	radio.begin();
-	// enable dynamic payloads
-	radio.enableDynamicPayloads();
-
-	// optionally, increase the delay between retries & # of retries
-	radio.setRetries(5,15);
-	radio.openWritingPipe(pipes[0]);
-	radio.openReadingPipe(1, pipes[1]);
-	radio.startListening();
-	radio.printDetails();
+	network.begin(/*channel*/ 90, /*node address*/ this_node);
 	digitalWrite(LED, HIGH);   // turn the LED on (HIGH is the voltage level)
 	delay(5000);               // wait for a second
 	digitalWrite(LED, LOW);    // turn the LED off by making the voltage LOW
@@ -75,16 +74,40 @@ int ftoa(char *a, float f) //translates floating point readings into strings to 
 	return 1;
 }
 
-void loop() {
-	unsigned long time = millis();
+boolean sendMessage(char *buffer) {
+	// transmit the data
+	int remaining = strlen(buffer);
+	Serial.print("\nTransmitting..."); Serial.println(remaining);
+	Serial.flush();
+	//radio.stopListening();
+	// RF24 only writes 32 bytes max in each payload, 8 byte header and 24 data, so split it up if needed
+	int sent = 0;
+	bool sendOK;
+	while (sent < remaining) {
+		Serial.print("Sending packet..."); Serial.println(min(32, remaining-sent));
+		RF24NetworkHeader header(/*to node*/ base_node);
+		Serial.print("buflen=");Serial.println(strlen(buffer));
+		sendOK = network.write(header, buffer, remaining);
+		sent += 32;
+		if (!sendOK) {
+			Serial.println("Write buffer failed");
+			break;
+		}
+	}
+	return sendOK;
+}
 
+void loop() {
 	uint8_t data[32];  // we'll transmit a 32 byte packet
 	data[0] = 99;    // our first byte in the packet will just be the number 99.
 
+	network.update();                          // Check the network regularly
+
 	// get sensor inputs, then sleep 30 seconds
-	uint8_t pir = -1;
+	boolean pir = false;
 	if (PIR_PIN > 0) {
-		pir = digitalRead(PIR_PIN);
+		uint8_t pirv = digitalRead(PIR_PIN);
+		pir = pirv == 1;
 	}
 
 	// Reading temperature or humidity takes about 250 milliseconds!
@@ -113,61 +136,43 @@ void loop() {
 	Serial.println(" *F\t");
 
 	// check if returns are valid, if they are NaN (not a number) then something went wrong!
-	char message[32];
-	char buffer[200];
+	char buffer[40];
 	if (isnan(t) || isnan(h)) {
-		sprintf(message, "ID:%d:TS:%lu:ER:ERROR\0", MYID, millis()); //millis provides a stamp for deduping if signal is repeated
+		sprintf(buffer, "ID:%d:TS:%lu:ER:ERROR\0", MYID, millis()); //millis provides a stamp for deduping if signal is repeated
 		Serial.println("Failed to read from DHT");
-		Serial.println(message);
-	} else {
-		StaticJsonBuffer<200> jsonBuffer;
-
-		JsonObject& message = jsonBuffer.createObject();
-		message["id"] = MYID;
-		message["temp"] = f;
-		message["ts"] = millis();
-		message["rh"] = h;
-		message["pir"] =  pir;
-		//message.printTo(Serial);
-		message.printTo(buffer, sizeof(buffer));
-		Serial.println();
-		//Serial.print("buffer="); Serial.println(buffer);
+		Serial.println(buffer);
+		return;
 	}
 
-	// transmit the data
-	int remaining = strlen(buffer);
-	Serial.print("\nTransmitting..."); Serial.println(strlen(buffer));
-	radio.stopListening();
-	char brace[1];
-	brace[0] = '{';
-	//radio.setPayloadSize(1);
-	//radio.write(&brace[0], 1);  // initial character that seems to get lost
-	Serial.println(buffer);
-	// RF24 only writes 32 bytes max in each payload, so split it up if needed
-	int sent = 0;
-	bool sendOK;
-	while (sent < remaining) {
-		Serial.print("Sending packet..."); Serial.println(min(32, remaining-sent));
-		//Serial.print("First char="); Serial.println(&buffer[sent]);
-		radio.setPayloadSize(min(32, remaining-sent));
-		sendOK = radio.write(&buffer[sent], min(32, remaining-sent));
-		sent += 32;
-		if (!sendOK) {
-			Serial.println("Write buffer failed");
-			break;
-		}
+	// send temperature message
+	StaticJsonBuffer<50> jsonBuffer1;
+	JsonObject& message1 = jsonBuffer1.createObject();
+	message1["id"] = MYID;
+	message1["tf"] = f;
+	message1.printTo(buffer, sizeof(buffer));
+	Serial.print("buffer="); Serial.print(buffer);Serial.println("...");
+	sendMessage(buffer);
+
+	// send humidity message
+	StaticJsonBuffer<50> jsonBuffer2;
+	JsonObject& message2 = jsonBuffer2.createObject();
+	message2["id"] = MYID;
+	message2["rh"] = h;
+	message2.printTo(buffer, sizeof(buffer));
+	Serial.print("buffer="); Serial.print(buffer);Serial.println("...");
+	sendMessage(buffer);
+
+	if (PIR_PIN > 0 && motionDetected != pir) {
+		StaticJsonBuffer<50> jsonBuffer3;
+		// send pir message
+		JsonObject& message3 = jsonBuffer3.createObject();
+		message3["id"] = MYID;
+		message3["pir"] =  pir;
+		message3.printTo(buffer, sizeof(buffer));
+		Serial.print("buffer="); Serial.print(buffer);Serial.println("...");
+		sendMessage(buffer);
 	}
-	if (sendOK) {
-		Serial.println("Sending terminator");
-		char term[32];
-		term[0] = 0x00;
-		//radio.setPayloadSize(1);
-		sendOK = radio.write(&term[0], 1);  // termination character
-		if (!sendOK) {
-			Serial.println("Write terminator failed");
-		}
-	}
-	//delay(10000);               // wait for a second
+
 	Sleepy::loseSomeTime(SLEEP_TIME);
 }
 

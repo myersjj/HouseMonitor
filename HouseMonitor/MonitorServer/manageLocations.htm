@@ -1,14 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <title>PiMonitorServer - Manage sensor locations</title>
 <meta name="description"
 	content="Manage sensor locations">
 <meta name="author" content="James Myers">
 <meta name="version" content="0.1">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="http://code.jquery.com/jquery-1.8.3.min.js"
-	type="text/javascript"></script>
+        type="text/javascript"></script>
 <script src="//code.jquery.com/ui/1.11.3/jquery-ui.js" type="text/javascript"></script>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
 <script type="text/javascript">
 var MAX_DUMP_DEPTH = 10;
 
@@ -106,18 +113,20 @@ function showLocations() {
                         //console.log(data.monitor_data.location_record[0][0].id);
                         if (data.monitor_data.location_record.length == 0) return;
                         $( "#locationsDiv" ).empty();
-                        $( "<ul>" ).insertAfter( "#locationsDiv" );
                         while (data.monitor_data.location_record[0][i]) {
                         	var lid = data.monitor_data.location_record[0][i].id;
-                        	var lname= data.monitor_data.location_record[0][i].locationName;
+                        	var lname = data.monitor_data.location_record[0][i].locationName;
+                        	var lstatus = data.monitor_data.location_record[0][i].status;
                             console.debug('location ' + lid +
-                            	    '=' + lname + ':');
-                            $( "<li>" + "<input hidden id=\"lid" + lid + "\" value=\"" + lid + "\"/>" + lid + ":" + 
-                            		"<input id=\"lname" + lid + "\" value=\"" + lname + "\"/>" + "</li>" 
-                            		).insertAfter( "#locationsDiv" );
+                            	    '=' + lname + ':' + lstatus);
+                            lhtml = "<br/>" + "<input hidden id=\"lid" + lid + "\" value=\"" + lid + "\"/>" +
+                            "<span>" + lid + ": </span>" +
+                            "<input id=\"lname" + lid + "\" value=\"" + lname + "\"/>" +
+                            "<span> Status: " + lstatus + "</span>";
+                            console.log('loc html=' + lhtml);
+                            $( lhtml).insertAfter( "#locationsDiv" );
                             i++;
                         }
-                        $( "</ul>" ).insertAfter( "#locationsDiv" );
                     });
 }
 	// Show locations
@@ -141,10 +150,11 @@ function showLocations() {
 </head>
 
 <body>
+    <h1>Manage sensor locations</h1>
 	<div>
 	   <div>Locations:
 	       <div id="locationsDiv"></div>
-	       <button id="updateLocations">Update locations</button>
+	       <div><button id="updateLocations">Update locations</button></div>
 	   </div>
 	   <hr>
 	   <div>New location name: <input id="newName" name="newName"/>

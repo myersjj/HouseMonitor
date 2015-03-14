@@ -62,10 +62,10 @@ function selectTemp(response, locationId, num_records, start_date, end_date, cal
 	// - start_date is the first date in the time-series required,
 	// - callback is the output function
 	// unix_time is UTC, so convert to local: datetime(strftime('%s','now'), 'unixepoch', 'localtime')
-	var current_temp = db
+	var current_temp = db.query('.headers ON')
 			.query(
-					"SELECT * FROM (SELECT * FROM Monitor WHERE locationId=? AND date(date) >= date(?) AND date(date) <= date(?, '+1 days') ORDER BY date DESC LIMIT ?) ORDER BY date;",
-					[ locationId, start_date, end_date, num_records ], function(err, rows) {
+					"SELECT * FROM (SELECT * FROM Temperature WHERE locationId=? AND date(date) >= date(?) AND date(date) <= date(?, '+1 days')) ORDER BY date;",
+					[ locationId, start_date, end_date ], function(err, rows) {
 						if (err) {
 							response.writeHead(500, {
 								"Content-type" : "text/html"
@@ -75,22 +75,49 @@ function selectTemp(response, locationId, num_records, start_date, end_date, cal
 									+ err);
 							return;
 						}
+						console.log(dumpObj(rows, 'Temp rows=', ' ', 5));
 						data = {
 								temperature_range : [ 65, 75],
-								humidity_range : [35, 60],
 								temperature_record : [ rows ]
-							}
-						console.log('Data=' + rows);
+							};
 						callback(data);
 					});
-};
+}
+
+//Get humidity records from database
+function selectHum(response, locationId, num_records, start_date, end_date, callback) {
+	// - Num records is an SQL filter from latest record back through time series,
+	// - start_date is the first date in the time-series required,
+	// - callback is the output function
+	// unix_time is UTC, so convert to local: datetime(strftime('%s','now'), 'unixepoch', 'localtime')
+	var current_hum = db.query('.headers ON')
+			.query(
+					"SELECT * FROM (SELECT * FROM Humidity WHERE locationId=? AND date(date) >= date(?) AND date(date) <= date(?, '+1 days')) ORDER BY date;",
+					[ locationId, start_date, end_date ], function(err, rows) {
+						if (err) {
+							response.writeHead(500, {
+								"Content-type" : "text/html"
+							});
+							response.end(err + "\n");
+							console.log('Error serving querying database. '
+									+ err);
+							return;
+						}
+						console.log(dumpObj(rows, 'Hum rows=', ' ', 5));
+						data = {
+								humidity_range : [35, 60],
+								humidity_record : [ rows ]
+							}
+						callback(data);
+					});
+}
 
 //Get motion records from database
 function selectMotion(response, locationId, num_records, start_date, end_date, callback) {
 	// - Num records is an SQL filter from latest record back through time series,
 	// - start_date is the first date in the time-series required,
 	// - callback is the output function
-	var current_motion = db
+	var current_motion = db.query('.headers ON')
 			.query(
 					"SELECT * FROM (SELECT * FROM Motion WHERE locationId=? AND date(date) >= date(?) AND date(date) <= date(?, '+1 days') ORDER BY unix_time DESC LIMIT ?) ORDER BY unix_time;",
 					[ locationId, start_date, end_date, num_records ], function(err, rows) {
@@ -103,10 +130,10 @@ function selectMotion(response, locationId, num_records, start_date, end_date, c
 									+ err);
 							return;
 						}
+						console.log(dumpObj(rows, 'Motion rows=', ' ', 5));
 						data = {
 							motion_record : [ rows ]
 						}
-						console.log('Data=' + rows);
 						callback(data);
 					});
 };
@@ -114,12 +141,13 @@ function selectMotion(response, locationId, num_records, start_date, end_date, c
 //Get location records from database
 function selectLocations(response, callback) {
 	// - callback is the output function
-	var current_motion = db
+	var locations = db
 			.query(
 					"SELECT * FROM Location ORDER BY id;",
 					[ ], {
 					    id: Number,
-					    locationName: String
+					    locationName: String,
+					    status: String
 					  }, 
 					  function(err, rows) {
 						if (err) {
@@ -133,7 +161,6 @@ function selectLocations(response, callback) {
 						}
 						console.log(rows.length);
 						if (rows.length > 0 ) {
-							console.log(rows[0]);
 							data = {
 									location_record : [ rows ]
 							}
@@ -158,12 +185,14 @@ function addLocation(json) {
 			console.log(rows.length);
 			var newId = 1;
 			if (rows.length > 0) newId = rows[0].id + 1;
+			var status = 'inactive';
 			db.query('BEGIN');
 			db.query(
-					  'INSERT INTO Location VALUES (:id, :locationname)',
+					  'INSERT INTO Location VALUES (:id, :locationname, :status)',
 					  {
 					    id: newId,
-					    locationname: json.newName
+					    locationname: json.newName,
+					    status: status
 					  }
 					);
 			db.query('COMMIT');
@@ -212,6 +241,18 @@ function handlePost(request, response, pathfile, json) {
 	}
 }
 
+function returnEnvData(response, tempData, humData, motionData) {
+	data = { monitor_data : {
+		temperature_record : tempData.temperature_record,
+		temperature_range : tempData.temperature_range,
+		humidity_record : humData.humidity_record,
+		humidity_range : humData.humidity_range,
+		motion_record : motionData.motion_record
+		}
+	};
+	response.end(JSON.stringify(data), "ascii");
+}
+
 // Setup node http server
 var server = http.createServer(
 // Our main server function
@@ -220,7 +261,7 @@ function(request, response) {
 	var url = require('url').parse(request.url, true);
 	var pathfile = url.pathname;
 	var query = url.query;
-	console.log('path=' + pathfile + '\n\t' + dumpObj(query, 'query', 2, 5));
+	console.log('path=' + pathfile + '\n\t' + dumpObj(query, 'query', ' ', 5));
 	
 	if ( request.method === 'POST' ) {
         // the body of the POST is JSON payload.
@@ -228,7 +269,7 @@ function(request, response) {
         request.addListener('data', function(chunk) { data += chunk; });
         request.addListener('end', function() {
             json = JSON.parse(data);
-            console.log(dumpObj(json, 'json', 2, 5));
+            console.log(dumpObj(json, 'json', ' ', 5));
             handlePost(request, response, pathfile, json);
         });
         return;
@@ -264,8 +305,8 @@ function(request, response) {
 		console.log('Database query request from '
 				+ request.connection.remoteAddress + ' for location ' + locationId + ' for ' + num_obs
 				+ ' records from ' + start_date + ' to ' + end_date + '.');
-		// call selectTemp function to get data from database
-		var tempData, motionData;
+		// call selectEnv function to get data from database
+		var tempData, humData, motionData;
 		selectTemp(response, locationId, num_obs, start_date, end_date, function(data) {
 			if (callbacks == 0) {
 				response.writeHead(200, {
@@ -274,15 +315,20 @@ function(request, response) {
 			}
 			callbacks++;
 			tempData = data;
-			if (callbacks == 2) {
-				data = { monitor_data : {
-						temperature_record : tempData.temperature_record,
-						temperature_range : tempData.temperature_range,
-						humidity_range : tempData.humidity_range,
-						motion_record : motionData.motion_record
-				}
-				};
-				response.end(JSON.stringify(data), "ascii");
+			if (callbacks == 3) {
+				returnEnvData(response, tempData, humData, motionData);
+			}
+		});
+		selectHum(response, locationId, num_obs, start_date, end_date, function(data) {
+			if (callbacks == 0) {
+				response.writeHead(200, {
+					"Content-type" : "application/json"
+				});
+			}
+			callbacks++;
+			humData = data;
+			if (callbacks == 3) {
+				returnEnvData(response, tempData, humData, motionData);
 			}
 		});
 		// call selectMotion function to get data from database
@@ -294,15 +340,8 @@ function(request, response) {
 			}
 			callbacks++;
 			motionData = data;
-			if (callbacks == 2) {
-				data = { monitor_data : {
-					temperature_record : tempData.temperature_record,
-					temperature_range : tempData.temperature_range,
-					humidity_range : tempData.humidity_range,
-					motion_record : motionData.motion_record
-				}
-				};
-				response.end(JSON.stringify(data), "ascii");
+			if (callbacks == 3) {
+				returnEnvData(response, tempData, humData, motionData);
 			}
 		});
 		return;

@@ -1,7 +1,7 @@
-#include <SPI.h>
+#include <RF24Network.h>
 #include <RF24.h>
+#include <SPI.h>
 #include <printf.h>
-//#include <ArduinoJson.h>
 
 #define LED 4
 #define RF_CS 9
@@ -10,9 +10,15 @@
 #define I2C_ADDRESS 0x04
 
 RF24 radio(RF_CS, RF_CSN);
-const uint64_t pipes[2] = { 0xABCDABCD71LL, 0xc2c2c2c2c2LL }; // opposite of sensor
+RF24Network network(radio);          // Network uses that radio
+const uint16_t this_node = 00;        // Address of our node in Octal format
+const uint16_t other_node = 01;       // Address of the other node in Octal format
 
 char message[128] = { 0 };
+
+String inputString = "";         // a string to hold incoming data
+boolean stringComplete = false;  // whether the string is complete
+boolean readMore = false;        // true if serial read incomplete
 
 void blink(int n) {
 	for (int i=1; i<=n; i++) {
@@ -24,7 +30,10 @@ void blink(int n) {
 
 void setup()
 {
-  Serial.begin(9600);  //Start the Serial at 9600 baud
+  Serial.begin(57600);  //Start the Serial at 57600 baud
+  Serial.flush();
+  // reserve 200 bytes for the inputString:
+  inputString.reserve(200);
   printf_begin();
   printf("RF24 receiver starting...\n\r");
   pinMode(LED, OUTPUT);
@@ -32,85 +41,78 @@ void setup()
   randomSeed (analogRead(A0));  //initialize the random number generator with
                                 //a random read from an unused and floating analog port
   radio.begin();
-  // enable dynamic payloads
-  radio.enableDynamicPayloads();
-  radio.enableAckPayload();
-  radio.setAutoAck(true);
-
-  // optionally, increase the delay between retries & # of retries
-  //radio.setRetries(5,15);
-  radio.openWritingPipe(pipes[0]);
-  radio.openReadingPipe(1, pipes[1]);
-  radio.startListening();
-  //radio.printDetails();
+  network.begin(/*channel*/ 90, /*node address*/ this_node);
 }
-
 
 void loop() {
-	blink(2);
-	    uint8_t rx_data[36];  // we'll receive a packet
-            message[128] = { 0 };
-            //StaticJsonBuffer<200> jsonBuffer;
-            unsigned long started_waiting_at = micros(); 
-            uint8_t len = 0;
-            uint8_t bytesReceived = 0;
-            uint8_t msgLength = 0;
-            boolean timeout = false;
-            while ( ! radio.available() ){                             // While nothing is received
-              if (micros() - started_waiting_at > 200000 ){            // If waited longer than 200ms, indicate timeout and exit while loop
-                timeout = true;
-                break;
-              }
-            }
-            if ( timeout ){                                             // Describe the results
-              Serial.println(F("Failed, read timed out."));
-              delay(10000);
-              return;
-            } else
-            {
-                unsigned long got_time;                                 // Grab the response, compare, and send to debugging spew
-                // Grab the response
-                boolean msgComplete = false;
-                radio.setPayloadSize(32);
-                bytesReceived = 0;
-                message[0] = 0;
-                msgLength = 0;
-                while (!msgComplete) {
-                  len = radio.getDynamicPayloadSize();     
-                  //Serial.print("Got len="); Serial.println(len); 
-                  
-                  // If a corrupt dynamic payload is received, it will be flushed
-                  if(!len){
-                    delay(10000);
-                    return; 
-                  }
-                  radio.read( &rx_data[0], len );
-                  //Serial.println("Read data...");
-                  //Serial.print("First char="); Serial.println((char)rx_data[0]);
-                  // Put a zero at the end for easy printing
-                  rx_data[len] = 0;
-                  if (len == 1 and rx_data[0] == 0x00)
-                  { 
-                      //Serial.println("Got terminator...");
-                      msgComplete = true;
-                  }
-                  
-                  // assemble message
-                  memcpy(&message[msgLength], rx_data, len);
-                  msgLength += len;
-                  bytesReceived += len;
-                } 
-            }
-            //Serial.print("Message in="); Serial.println(msgLength);
-            Serial.println(message);  // sends json data to the pi for handling
-#if 0
-            JsonObject& root = jsonBuffer.parseObject((char*)&message); // destroys message it appears
-            if (!root.success())
-            {
-              Serial.println("parseObject() failed");
-              delay(10000);
-              return;
-            }
-#endif
-	delay(10000);
+
+  network.update();                  // Check the network regularly
+
+  if (readMore && Serial.available()) {
+    //Serial.print("Read more data...");Serial.println(Serial.available());
+    while (Serial.available()) {
+      // get the new byte:
+      char inChar = (char)Serial.read(); 
+      // add it to the inputString:
+      inputString += inChar;
+      // if the incoming character is a newline, set a flag
+      // so the main loop can do something about it:
+      if (inChar == '\n'|| inputString.length() >= 200) {
+        stringComplete = true;
+        readMore = false;
+        break;
+      } 
+    }
+    //Serial.print("Got more data...");Serial.println(inputString.length());
+  }
+  if (stringComplete) {
+    //Serial.print("echo length=");Serial.println(inputString.length());
+    //Serial.print("echo: ");Serial.println(inputString); 
+    //Serial.flush();
+    // TODO: display on LCD screen
+    // clear the string:
+    inputString = "";
+    stringComplete = false;
+  }
+  // can only receive 24 bytes of data!!!
+  while ( network.available() ) {     // Is there anything ready for us?
+
+      RF24NetworkHeader header;        // If so, grab it and print it out
+      uint8_t payload[25];  // we'll receive a packet
+      int count = network.read(header,&payload,sizeof(payload));
+      payload[count] = 0;  // terminate buffer
+      Serial.print("Received "); Serial.println(count);
+      Serial.print("From ");Serial.print(header.from_node);
+      Serial.print("->");Serial.print(header.to_node);
+      Serial.print(" id ");Serial.print(header.id);
+      Serial.print(" type ");Serial.println(header.type);
+      Serial.println((const char*)&payload);  // sends json data to the pi for handling
+      Serial.flush(); // wait for write to complete so we don't overwrite buffer
+  }
 }
+
+/*
+  SerialEvent occurs whenever a new data comes in the
+ hardware serial RX.  This routine is run between each
+ time loop() runs, so using delay inside loop can delay
+ response.  Multiple bytes of data may be available.
+ Arduino only has 64 byte receive buffer, so may need multiple loops to read whole message.
+ */
+void serialEvent() {
+  while (Serial.available()) {
+    // get the new byte:
+    char inChar = (char)Serial.read(); 
+    // add it to the inputString:
+    inputString += inChar;
+    // if the incoming character is a newline, set a flag
+    // so the main loop can do something about it:
+    if ((inChar == '\n') || (inputString.length() >= 200)) {
+      stringComplete = true;
+      readMore = false;
+      break;
+    } 
+  }
+  //Serial.print("eof:" );Serial.println(Serial.available());
+  if (!stringComplete) readMore = true;
+}
+

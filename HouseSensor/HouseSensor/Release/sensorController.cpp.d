@@ -1,5 +1,7 @@
 sensorController.cpp.o sensorController.cpp.o: ../sensorController.cpp \
-  C:\Users\myersjj\Arduino\libraries\SPI/SPI.h \
+  C:\Users\myersjj\Arduino\libraries\RF24Network/RF24Network.h \
+  C:\Users\myersjj\Arduino\libraries\RF24/RF24.h \
+  C:\Users\myersjj\Arduino\libraries\RF24/RF24_config.h \
   C:\myersware\Arduino\hardware\arduino\avr\cores\arduino/Arduino.h \
   C:\myersware\Arduino\hardware\arduino\avr\cores\arduino/binary.h \
   C:\myersware\Arduino\hardware\arduino\avr\cores\arduino/WCharacter.h \
@@ -11,8 +13,7 @@ sensorController.cpp.o sensorController.cpp.o: ../sensorController.cpp \
   C:\myersware\Arduino\hardware\arduino\avr\cores\arduino/new.h \
   C:\myersware\Arduino\hardware\arduino\avr\cores\arduino/USBAPI.h \
   C:\myersware\Arduino\hardware\arduino\avr\variants\standard/pins_arduino.h \
-  C:\Users\myersjj\Arduino\libraries\RF24/RF24.h \
-  C:\Users\myersjj\Arduino\libraries\RF24/RF24_config.h \
+  C:\Users\myersjj\Arduino\libraries\SPI/SPI.h \
   C:\Users\myersjj\Arduino\libraries\RF24/printf.h \
   C:\Users\myersjj\Arduino\libraries\jeelib/JeeLib.h \
   C:\Users\myersjj\Arduino\libraries\jeelib/Ports.h \
@@ -45,7 +46,11 @@ sensorController.cpp.o sensorController.cpp.o: ../sensorController.cpp \
   C:\Users\myersjj\Arduino\libraries\ArduinoJson/include/../include/ArduinoJson/JsonPair.hpp \
   C:\Users\myersjj\Arduino\libraries\ArduinoJson/include/../include/ArduinoJson/StaticJsonBuffer.hpp
 
-C:\Users\myersjj\Arduino\libraries\SPI/SPI.h:
+C:\Users\myersjj\Arduino\libraries\RF24Network/RF24Network.h:
+
+C:\Users\myersjj\Arduino\libraries\RF24/RF24.h:
+
+C:\Users\myersjj\Arduino\libraries\RF24/RF24_config.h:
 
 C:\myersware\Arduino\hardware\arduino\avr\cores\arduino/Arduino.h:
 
@@ -69,9 +74,7 @@ C:\myersware\Arduino\hardware\arduino\avr\cores\arduino/USBAPI.h:
 
 C:\myersware\Arduino\hardware\arduino\avr\variants\standard/pins_arduino.h:
 
-C:\Users\myersjj\Arduino\libraries\RF24/RF24.h:
-
-C:\Users\myersjj\Arduino\libraries\RF24/RF24_config.h:
+C:\Users\myersjj\Arduino\libraries\SPI/SPI.h:
 
 C:\Users\myersjj\Arduino\libraries\RF24/printf.h:
 

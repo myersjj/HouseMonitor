@@ -37,9 +37,14 @@
 			<locationURI>ArduinoPivateLibPath/RF24</locationURI>
 		</link>
 		<link>
+			<name>Libraries/RF24Network</name>
+			<type>2</type>
+			<locationURI>ArduinoPivateLibPath/RF24Network</locationURI>
+		</link>
+		<link>
 			<name>Libraries/SPI</name>
 			<type>2</type>
-			<locationURI>ArduinoPivateLibPath/SPI</locationURI>
+			<locationURI>ArduinoHardwareLibPath/SPI</locationURI>
 		</link>
 		<link>
 			<name>arduino/core</name>

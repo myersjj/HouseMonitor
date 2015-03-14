@@ -9,7 +9,7 @@ import datetime
 import logging
 import json
 import serial
-from monitorRecord import monitorRecord
+from monitorRecord import monitorRecord, monitorStatus
 from Queue import Queue
 
 queue = Queue(10)
@@ -20,7 +20,10 @@ DEV = {'1': 'Jim office', '2': 'Front porch'}
 motionDetected = False
 motionTicks = 4
 tickCounter = -1
+ser = None
+
 shutdown_event = threading.Event()
+status_event = threading.Event()
 
 # create logger with 'spam_application'
 logger = logging.getLogger('collector')
@@ -48,11 +51,8 @@ logger.addHandler(fh)
 class ArduinoThread(threading.Thread):
 
     def run(self):
-        global queue, tickCounter, stopThread, motionTicks, motionDetected
+        global queue, tickCounter, stopThread, motionTicks, motionDetected, ser
 
-        # Open the serial Port
-        ser = serial.Serial('/dev/ttyAMA0', 9600, timeout=30)
-        ser.flushInput()  # Clear the input buffer
         try:
             while True:
                 if shutdown_event.is_set():
@@ -62,7 +62,7 @@ class ArduinoThread(threading.Thread):
                 # read sensors
                 sensor_data = ser.readline()
                 # sensor_data = {"id" : 1, "type": "env", "ts" : time.time(),
-                #               "tempF" : tempF, "humidity" : humidity}
+                #               "tempF" : tempF, "rh" : humidity}
                 # If something was read from the Serial Port, read and return
                 # the line
                 if len(sensor_data):
@@ -71,6 +71,8 @@ class ArduinoThread(threading.Thread):
                         logger.info("Produced {}".format(sensor_data))
                     else:  # got some debug info
                         logger.debug(sensor_data)
+                if (tickCounter % 8) == 0:
+                    status_event.set()
                 time.sleep(random.randint(2, 4))
                 tickCounter += 1
         except:
@@ -84,7 +86,7 @@ class ArduinoThread(threading.Thread):
 class ConsumerThread(threading.Thread):
 
     def run(self):
-        global queue, stopThread
+        global queue, stopThread, ser
 
         monitorRecord(None, init=True)
         try:
@@ -93,6 +95,16 @@ class ConsumerThread(threading.Thread):
                 if shutdown_event.is_set():
                     print 'Consumer stopping...'
                     return
+                if status_event.is_set():
+                    status = monitorStatus()
+                    count = ser.write(status)  # write status for lcd output
+                    logger.debug(
+                        'Wrote %d of %d bytes of status.' % (count, len(status)))
+                    if count != len(status):
+                        logger.error("Failed to write status.")
+                    ser.write('\n')
+                    status_event.clear()
+                    continue
                 monitorRecord(sensor_data)
                 logger.debug("Consumed {}".format(sensor_data))
         except:
@@ -102,6 +114,10 @@ class ConsumerThread(threading.Thread):
 
 
 def main():
+    global ser
+    # Open the serial Port
+    ser = serial.Serial('/dev/ttyAMA0', 57600, timeout=10)
+    ser.flushInput()  # Clear the input buffer
     ArduinoThread().start()
     ConsumerThread().start()
 
