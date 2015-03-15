@@ -5,18 +5,18 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="it.baeyens.arduino.core.toolChain.release.2028454898" moduleId="org.eclipse.cdt.core.settings" name="Release">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.MakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.MakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 				<configuration artifactName="${ProjName}" buildProperties="" description="" id="it.baeyens.arduino.core.toolChain.release.2028454898" name="Release" parent="org.eclipse.cdt.build.core.emptycfg">
 					<folderInfo id="it.baeyens.arduino.core.toolChain.release.2028454898.541273676" name="/" resourcePath="">
-						<toolChain id="it.baeyens.arduino.core.toolChain.release.1106750281" name="Arduino Toolchain" superClass="it.baeyens.arduino.core.toolChain.release">
+						<toolChain id="it.baeyens.arduino.core.toolChain.release.1106750281" name="Arduino Toolchain" nonInternalBuilderId="it.baeyens.arduino.sketch.builder" superClass="it.baeyens.arduino.core.toolChain.release">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="it.baeyens.arduino.targetplatform.2063206141" name="Arduino Target" osList="all" superClass="it.baeyens.arduino.targetplatform"/>
-							<builder buildPath="${workspace_loc:/House_sensor}/Release" id="it.baeyens.arduino.sketch.builder.1289967327" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Arduino sketch builder" superClass="it.baeyens.arduino.sketch.builder"/>
+							<builder buildPath="${workspace_loc:/HouseSensor}/Release" id="it.baeyens.arduino.sketch.builder.688101257" name="Arduino sketch builder" superClass="it.baeyens.arduino.sketch.builder"/>
 							<tool id="it.baeyens.arduino.tool.sketch.compiler.cpp.1855278715" name="Arduino C++ Compiler" superClass="it.baeyens.arduino.tool.sketch.compiler.cpp">
 								<option id="it.baeyens.arduino.compiler.cpp.sketch.option.incpath.1269506136" name="Include Paths (-I)" superClass="it.baeyens.arduino.compiler.cpp.sketch.option.incpath" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Libraries/DHT-sensor-library}&quot;"/>
@@ -30,6 +30,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/HouseSensor/Libraries/ArduinoJson}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/HouseSensor/Libraries/ArduinoJson/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/HouseSensor/Libraries/RF24}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/HouseSensor/Libraries/RF24Network}&quot;"/>
 								</option>
 								<inputType id="it.baeyens.arduino.compiler.cpp.sketch.input.1522323110" name="CPP source files" superClass="it.baeyens.arduino.compiler.cpp.sketch.input"/>
 							</tool>
@@ -40,6 +41,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/HouseSensor/Libraries/ArduinoJson}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/HouseSensor/Libraries/ArduinoJson/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/HouseSensor/Libraries/RF24}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/HouseSensor/Libraries/RF24Network}&quot;"/>
 								</option>
 								<inputType id="it.baeyens.arduino.compiler.c.sketch.input.427286691" name="C Source Files" superClass="it.baeyens.arduino.compiler.c.sketch.input"/>
 							</tool>

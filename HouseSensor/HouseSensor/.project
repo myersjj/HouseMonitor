@@ -75,15 +75,15 @@
 	<variableList>
 		<variable>
 			<name>ArduinoHardwareLibPath</name>
-			<value>file:/C:/myersware/Arduino/hardware/arduino/avr/libraries</value>
+			<value>file:/C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries</value>
 		</variable>
 		<variable>
 			<name>ArduinoPinPath</name>
-			<value>file:/C:/myersware/Arduino/hardware/arduino/avr/variants</value>
+			<value>file:/C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/variants</value>
 		</variable>
 		<variable>
 			<name>ArduinoPlatformPath</name>
-			<value>file:/C:/myersware/Arduino/hardware/arduino/avr</value>
+			<value>file:/C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr</value>
 		</variable>
 	</variableList>
 </projectDescription>

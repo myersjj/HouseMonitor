@@ -78,6 +78,7 @@ void loop() {
   while ( network.available() ) {     // Is there anything ready for us?
 
       RF24NetworkHeader header;        // If so, grab it and print it out
+      network.peek(header);
       uint8_t payload[25];  // we'll receive a packet
       int count = network.read(header,&payload,sizeof(payload));
       payload[count] = 0;  // terminate buffer

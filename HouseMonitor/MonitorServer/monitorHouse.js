@@ -75,7 +75,7 @@ function selectTemp(response, locationId, num_records, start_date, end_date, cal
 									+ err);
 							return;
 						}
-						console.log(dumpObj(rows, 'Temp rows=', ' ', 5));
+						//console.log(dumpObj(rows, 'Temp rows=', ' ', 5));
 						data = {
 								temperature_range : [ 65, 75],
 								temperature_record : [ rows ]
@@ -103,7 +103,7 @@ function selectHum(response, locationId, num_records, start_date, end_date, call
 									+ err);
 							return;
 						}
-						console.log(dumpObj(rows, 'Hum rows=', ' ', 5));
+						//console.log(dumpObj(rows, 'Hum rows=', ' ', 5));
 						data = {
 								humidity_range : [35, 60],
 								humidity_record : [ rows ]
