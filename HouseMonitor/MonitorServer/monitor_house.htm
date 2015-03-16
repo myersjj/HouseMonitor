@@ -184,7 +184,7 @@ function showLocations() {
 							console.log('seriesHumidity=' + seriesHumidity.data);
 							i = 0;
 							while (data.monitor_data.motion_record[0][i]) {
-								var ctime = parseInt(data.monitor_data.motion_record[0][i].Time);
+								var ctime = parseInt(data.monitor_data.motion_record[0][i].unix_time);
 								var today = new Date();
 								var tz = today.getTimezoneOffset();
 								//convert ctime from UTC to local

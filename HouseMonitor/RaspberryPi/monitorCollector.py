@@ -48,7 +48,7 @@ logger.addHandler(fh)
 # write message to queue
 
 
-class ArduinoThread(threading.Thread):
+class ReceiverThread(threading.Thread):
 
     def run(self):
         global queue, tickCounter, stopThread, motionTicks, motionDetected, ser
@@ -57,26 +57,34 @@ class ArduinoThread(threading.Thread):
             while True:
                 if shutdown_event.is_set():
                     print 'Producer stopping...'
-                    queue.put({"type": "shutdown"})
+                    queue.put({"type": "shutdown"})  # wakes up consumer thread
                     return
                 # read sensors
-                sensor_data = ser.readline()
-                # sensor_data = {"id" : 1, "type": "env", "ts" : time.time(),
-                #               "tempF" : tempF, "rh" : humidity}
-                # If something was read from the Serial Port, read and return
-                # the line
-                if len(sensor_data):
-                    if sensor_data[0] == '{':
-                        queue.put(sensor_data)
-                        logger.info("Produced {}".format(sensor_data))
-                    else:  # got some debug info
-                        logger.debug(sensor_data)
+                while True:
+                    if shutdown_event.is_set():
+                        print 'Producer stopping...'
+                        # wakes up consumer thread
+                        queue.put({"type": "shutdown"})
+                        return
+                    sensor_data = ser.readline()
+                    if not sensor_data:
+                        break
+                    # sensor_data = {"id" : 1, "type": "env", "ts" : time.time(),
+                    #               "tempF" : tempF, "rh" : humidity}
+                    # If something was read from the Serial Port, read and return
+                    # the line
+                    if len(sensor_data):
+                        if sensor_data[0] == '{':
+                            queue.put(sensor_data)
+                            logger.info("Produced {}".format(sensor_data))
+                        else:  # got some debug info
+                            logger.debug(sensor_data)
                 if (tickCounter % 8) == 0:
                     status_event.set()
                 time.sleep(random.randint(2, 4))
                 tickCounter += 1
         except:
-            logger.error('Error: %s' % traceback.format_exc())
+            logger.error('Receiver error: %s' % traceback.format_exc())
         finally:
             pass
 
@@ -91,24 +99,25 @@ class ConsumerThread(threading.Thread):
         monitorRecord(None, init=True)
         try:
             while True:
-                sensor_data = queue.get()  # blocks until item available
                 if shutdown_event.is_set():
                     print 'Consumer stopping...'
                     return
+                sensor_data = queue.get()  # blocks until item available
                 if status_event.is_set():
                     status = monitorStatus()
-                    count = ser.write(status)  # write status for lcd output
-                    logger.debug(
-                        'Wrote %d of %d bytes of status.' % (count, len(status)))
-                    if count != len(status):
-                        logger.error("Failed to write status.")
-                    ser.write('\n')
+                    if status:
+                        # write status for lcd output
+                        count = ser.write(status)
+                        logger.debug(
+                            'Wrote %d of %d bytes of status.' % (count, len(status)))
+                        if count != len(status):
+                            logger.error("Failed to write status.")
+                        ser.write('\n')
                     status_event.clear()
-                    continue
                 monitorRecord(sensor_data)
                 logger.debug("Consumed {}".format(sensor_data))
         except:
-            logger.error('Error: %s' % traceback.format_exc())
+            logger.error('Consumer error: %s' % traceback.format_exc())
         finally:
             monitorRecord(None, term=True)
 
@@ -118,7 +127,7 @@ def main():
     # Open the serial Port
     ser = serial.Serial('/dev/ttyAMA0', 57600, timeout=10)
     ser.flushInput()  # Clear the input buffer
-    ArduinoThread().start()
+    ReceiverThread().start()
     ConsumerThread().start()
 
     while True:

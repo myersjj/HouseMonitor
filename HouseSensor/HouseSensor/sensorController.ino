@@ -30,7 +30,7 @@ const uint16_t base_node = 00;       // Address of the other node in Octal forma
 
 DHT dht(DHT_PIN, DHTTYPE);
 
-boolean motionDetected = false;
+bool motionDetected = false;
 
 //ISR(WDT_vect) {
 //	Sleepy::watchdogEvent();
@@ -43,7 +43,7 @@ void setup() {
 	if (PIR_PIN > 0) {
 		pinMode(PIR_PIN, INPUT);
 	}
-	Serial.println("Starting...");
+	Serial.println("Starting v0.25...");
 	digitalWrite(LED, HIGH);   // turn the LED on (HIGH is the voltage level)
 	delay(1000);               // wait for a second
 	digitalWrite(LED, LOW);    // turn the LED off by making the voltage LOW
@@ -52,13 +52,13 @@ void setup() {
 
 	//Initialize the Sensor
 	dht.begin();
-	Serial.println("Starting radio...");
+	//Serial.println("Starting radio...");
 	radio.begin();
 	network.begin(/*channel*/ 90, /*node address*/ this_node);
 	digitalWrite(LED, HIGH);   // turn the LED on (HIGH is the voltage level)
 	delay(5000);               // wait for a second
 	digitalWrite(LED, LOW);    // turn the LED off by making the voltage LOW
-	Serial.println("Ending setup...");
+	//Serial.println("Ending setup...");
 }
 
 int ftoa(char *a, float f) //translates floating point readings into strings to send over the air
@@ -85,13 +85,15 @@ boolean sendMessage(char *buffer) {
 	bool sendOK;
 	while (sent < remaining) {
 		Serial.print("Sending packet..."); Serial.println(min(32, remaining-sent));
+		buffer[remaining] = '\0';  // ensure buffer is terminated properly
 		RF24NetworkHeader header(/*to node*/ base_node, /*type*/ 'S');
-		//Serial.print("buflen=");Serial.println(strlen(buffer));
-		sendOK = network.write(header, buffer, remaining);
+		sendOK = network.write(header, buffer, remaining+1); // add 1 to include terminator
 		sent += 32;
 		if (!sendOK) {
 			Serial.println("Write buffer failed");
 			break;
+		} else {
+			Serial.print("sent="); Serial.print(buffer);Serial.println("...");
 		}
 	}
 	return sendOK;
@@ -104,15 +106,15 @@ void loop() {
 	network.update();                          // Check the network regularly
 
 	// get sensor inputs, then sleep 30 seconds
-	boolean pir = false;
+	bool pir = false;
 	if (PIR_PIN > 0) {
 		uint8_t pirv = digitalRead(PIR_PIN);
-		pir = (pirv == 1) ? 1 : 0;
+		pir = (pirv == 1) ? true : false;
 	}
 
 	// Reading temperature or humidity takes about 250 milliseconds!
 	// Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-	Serial.println("Reading DHT...");
+	//Serial.println("Reading DHT...");
 	float h = dht.readHumidity();
 	float t = dht.readTemperature();
 	float f = dht.readTemperature(true);
@@ -137,7 +139,7 @@ void loop() {
 
 	// check if returns are valid, if they are NaN (not a number) then something went wrong!
 	char buffer[40];
-	if (isnan(t) || isnan(h)) {
+	if (isnan(t) || isnan(h) || h == 0.0) {
 		sprintf(buffer, "ID:%d:TS:%lu:ER:ERROR\0", MYID, millis()); //millis provides a stamp for deduping if signal is repeated
 		Serial.println("Failed to read from DHT");
 		Serial.println(buffer);
@@ -149,8 +151,8 @@ void loop() {
 	JsonObject& message1 = jsonBuffer1.createObject();
 	message1["id"] = MYID;
 	message1["tf"] = f;
+	memset(buffer, 0, sizeof(buffer));  // clear buffer to avoid reuse
 	message1.printTo(buffer, sizeof(buffer));
-	Serial.print("buffer="); Serial.print(buffer);Serial.println("...");
 	sendMessage(buffer);
 
 	// send humidity message
@@ -158,19 +160,23 @@ void loop() {
 	JsonObject& message2 = jsonBuffer2.createObject();
 	message2["id"] = MYID;
 	message2["rh"] = h;
+	memset(buffer, 0, sizeof(buffer));  // clear buffer to avoid reuse
 	message2.printTo(buffer, sizeof(buffer));
-	Serial.print("buffer="); Serial.print(buffer);Serial.println("...");
 	sendMessage(buffer);
 
-	if (PIR_PIN > 0 && motionDetected != pir) {
-		StaticJsonBuffer<50> jsonBuffer3;
-		// send pir message
-		JsonObject& message3 = jsonBuffer3.createObject();
-		message3["id"] = MYID;
-		message3["pir"] =  pir;
-		message3.printTo(buffer, sizeof(buffer));
-		Serial.print("buffer="); Serial.print(buffer);Serial.println("...");
-		sendMessage(buffer);
+	if (PIR_PIN > 0) {
+		//Serial.print("md=");Serial.print(motionDetected);Serial.print(" pir=");Serial.println(pir);
+		if (motionDetected != pir) {
+			StaticJsonBuffer<50> jsonBuffer3;
+			// send pir message
+			JsonObject& message3 = jsonBuffer3.createObject();
+			message3["id"] = MYID;
+			message3["pir"] =  pir ? "True" : "False";
+			memset(buffer, 0, sizeof(buffer));  // clear buffer to avoid reuse
+			message3.printTo(buffer, sizeof(buffer));
+			sendMessage(buffer);
+			motionDetected = pir;
+		}
 	}
 
 	Sleepy::loseSomeTime(SLEEP_TIME);

@@ -151,8 +151,7 @@ def open_db(db_name):
     except:
         # initialize the new table
         createTable = "CREATE TABLE Motion(Id INTEGER PRIMARY KEY, LocationId INT"
-        createTable += ", unix_time bigint, Date TEXT, Time TEXT"
-        createTable += ", Status INT"
+        createTable += ", unix_time bigint, Date TEXT, Time TEXT, Status INT"
         createTable += ", FOREIGN KEY(locationId) REFERENCES location(id)"
         createTable += ");"
         cur.execute(createTable)
@@ -174,6 +173,7 @@ humidityWarningIssued = False
 def monitorStatus():
     # check if locations transmitting ok
     # Login if necessary.
+    return None  # for now...
     global con
     if con is None:
         con = open_db(SQL_DB_NAME)
@@ -501,8 +501,10 @@ def recordMotionData(con, d, sensor_data):
     try:
         sensorStatus = sensor_data['pir']  # will be string True or False
     except:
+        #logger.error('pir error: %s' % traceback.format_exc())
         return  # no motion data in record
-    if sensorStatus == 'True':
+    #logger.debug('sensorStatus=%s' % sensorStatus)
+    if sensorStatus in ['true', 'True', True]:
         sensorStatus = True
     else:
         sensorStatus = False
@@ -531,12 +533,16 @@ def recordMotionData(con, d, sensor_data):
                     subprocess.call(
                         'sudo 433Utils/RPi_utils/codesend %s' % lightOff, shell=True)
                     unixtimeOff = unixtimeNow
+    #logger.debug('md=%s ss=%s' % (motionDetected, sensorStatus))
     if motionDetected != sensorStatus:
         cur = con.cursor()
+        motionDetected = sensorStatus
+        #logger.debug('insert into motion...')
         cur.execute("INSERT INTO Motion (unix_time, Date, Time, Status, LocationId) values(?,?,?,?,?)",
                     (int(time.mktime(d.timetuple())),
                      d.date().strftime('%Y-%m-%d').lstrip('0'),
                      str(d.time()), sensorStatus, sensorId))
+        #logger.debug('motion insert result=%r' % result)
         con.commit()
 
 
@@ -570,7 +576,6 @@ def monitorRecord(sensor_data, init=False, term=False):
         try:
             sensor_data = sensor_data.strip()
             sensor_json = json.loads(sensor_data)
-            #dataType = sensor_json['type']
             recordEnvData(con, d, sensor_json)
         except:
             logger.error("Json error: '%s'" % sensor_data)

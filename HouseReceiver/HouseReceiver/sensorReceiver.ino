@@ -35,7 +35,7 @@ void setup()
   // reserve 200 bytes for the inputString:
   inputString.reserve(200);
   printf_begin();
-  printf("RF24 receiver starting...\n\r");
+  printf("RF24 v0.24 receiver starting...\n\r");
   pinMode(LED, OUTPUT);
   blink(1);
   randomSeed (analogRead(A0));  //initialize the random number generator with
@@ -80,13 +80,15 @@ void loop() {
       RF24NetworkHeader header;        // If so, grab it and print it out
       network.peek(header);
       uint8_t payload[25];  // we'll receive a packet
+      memset(payload, 0, sizeof(payload));  // clear the buffer 
       int count = network.read(header,&payload,sizeof(payload));
       payload[count] = 0;  // terminate buffer
-      Serial.print("Received "); Serial.println(count);
-      Serial.print("From ");Serial.print(header.from_node);
+      Serial.print("Received "); Serial.print(count);
+      Serial.print(" from ");Serial.print(header.from_node);
       Serial.print("->");Serial.print(header.to_node);
       Serial.print(" id ");Serial.print(header.id);
-      Serial.print(" type ");Serial.println(header.type);
+      Serial.print(" type ");Serial.print(header.type);
+      Serial.print(" len="); Serial.println(strlen((const char*)&payload));
       Serial.println((const char*)&payload);  // sends json data to the pi for handling
       Serial.flush(); // wait for write to complete so we don't overwrite buffer
   }
