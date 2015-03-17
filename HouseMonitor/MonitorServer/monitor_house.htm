@@ -43,8 +43,8 @@ function showLocations() {
                         $( "#locationsDiv" ).empty();
                         $( "<select id=\"locationId\" required>" ).insertAfter( "#locationsDiv" );
                         while (data.monitor_data.location_record[0][i]) {
-                            var lid = data.monitor_data.location_record[0][i].id;
-                            var lname = data.monitor_data.location_record[0][i].locationName;
+                            var lid = data.monitor_data.location_record[0][i].Id;
+                            var lname = data.monitor_data.location_record[0][i].LocationName;
                             var lstatus = data.monitor_data.location_record[0][i].status;
                             console.debug('location ' + lid +
                                     '=' + lname + ':');

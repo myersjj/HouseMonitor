@@ -19,8 +19,9 @@
 // Connect pin 4 (on the right) of the sensor to GROUND
 // Connect a 10K resistor from pin 2 (data) to pin 1 (power) of the sensor
 #define PIR_PIN 4  // use 0 if no PIR on this sensor
+#define BATTERY_PIN 1  // use 0 if no battery
 #define UNIT 0      // 0 for Fahrenheit and 1 for Celsius
-#define MYID 2      //the ID number of this board.  Change this for each board you flash.
+#define MYID 1      //the ID number of this board.  Change this for each board you flash.
 //The ID will be transmitted with the data so you can tell which device is transmitting
 
 RF24 radio(RF_CS, RF_CSN);
@@ -177,6 +178,16 @@ void loop() {
 			sendMessage(buffer);
 			motionDetected = pir;
 		}
+	}
+	if (BATTERY_PIN > 0) {
+		StaticJsonBuffer<50> jsonBuffer4;
+		// send battery status message
+		JsonObject& message4 = jsonBuffer4.createObject();
+		message4["id"] = MYID;
+		message4["bs"] =  50.0;
+		memset(buffer, 0, sizeof(buffer));  // clear buffer to avoid reuse
+		message4.printTo(buffer, sizeof(buffer));
+		sendMessage(buffer);
 	}
 
 	Sleepy::loseSomeTime(SLEEP_TIME);

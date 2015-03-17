@@ -156,6 +156,19 @@ def open_db(db_name):
         createTable += ");"
         cur.execute(createTable)
         con.commit()
+
+    # check if battery status exists
+    try:
+        cur.execute("SELECT * FROM Battery where id=1")
+        # rows = cur.fetchall()
+    except:
+        # initialize the new table
+        createTable = "CREATE TABLE Battery(Id INTEGER PRIMARY KEY, LocationId INT"
+        createTable += ", unix_time bigint, Date TEXT, Time TEXT, Status REAL"
+        createTable += ", FOREIGN KEY(locationId) REFERENCES location(id)"
+        createTable += ");"
+        cur.execute(createTable)
+        con.commit()
     # sys.exit(1)
     return con
 
@@ -222,7 +235,7 @@ def monitorStatus():
     return status
 
 
-def recordEnvData(con, today, sensor_data):
+def recordEnvData(con, today, sensorId, sensor_data):
     """ We get only short json messages with 1 data value (temp or humidity or pir) because of 24 byte
     limit sending RF messages. So we have to just update the one value"""
     global tempWarning, tempWarningIssued, humidityWarning, humidityWarningIssued
@@ -231,9 +244,9 @@ def recordEnvData(con, today, sensor_data):
     con.row_factory = lite.Row  # use dictionaries
     cur = con.cursor()
     d = datetime.datetime.now()
-    recordMotionData(con, d, sensor_data)
+    recordMotionData(con, d, sensorId, sensor_data)
+    recordBatteryStatus(con, d, sensorId, sensor_data)
     thisHour = d.time().hour
-    sensorId = sensor_data['id']
     try:
         tempF = sensor_data['tf']
     except:
@@ -492,12 +505,11 @@ def recordEnvData(con, today, sensor_data):
 # TODO: generalize for multiple PIRs
 
 
-def recordMotionData(con, d, sensor_data):
+def recordMotionData(con, d, sensorId, sensor_data):
     global offTime  # time motion sensor transitioned to off
     global motionDetected
 
     # if status is off for more than specified time, then turn off lights
-    sensorId = sensor_data['id']
     try:
         sensorStatus = sensor_data['pir']  # will be string True or False
     except:
@@ -546,6 +558,34 @@ def recordMotionData(con, d, sensor_data):
         con.commit()
 
 
+def recordBatteryStatus(con, d, sensorId, sensor_data):
+    # if status is too lower, send alarm
+    try:
+        batteryStatus = sensor_data['bs']  # will be string True or False
+    except:
+        return  # no motion data in record
+    cur = con.cursor()
+    cur.execute("SELECT ID FROM Battery WHERE locationId=? ORDER BY id DESC LIMIT 1;",
+                (sensorId,))
+    row = cur.fetchone()
+    if row == None:
+        cur.execute("INSERT INTO Battery (unix_time, Date, Time, Status, LocationId) values(?,?,?,?,?)",
+                    (int(time.mktime(d.timetuple())),
+                     d.date().strftime('%Y-%m-%d').lstrip('0'),
+                     str(d.time()), 0.0, sensorId))
+    cur.execute("SELECT ID FROM Battery WHERE locationId=? ORDER BY id DESC LIMIT 1;",
+                (sensorId,))
+    row = cur.fetchone()
+    lastRowNum = row['id']
+    #logger.debug('insert into motion...')
+    cur.execute("UPDATE Battery SET unix_time=?, Time=?, Status=? WHERE ID=?",
+                (int(time.mktime(d.timetuple())),
+                 str(d.time()), batteryStatus, lastRowNum))
+    con.commit()
+    logger.debug(
+        'Updated battery row {} status={}'.format(lastRowNum, batteryStatus))
+
+
 def monitorRecord(sensor_data, init=False, term=False):
     global con
 
@@ -574,9 +614,13 @@ def monitorRecord(sensor_data, init=False, term=False):
         d = datetime.datetime.now()
         # convert sensor_data to json
         try:
-            sensor_data = sensor_data.strip()
-            sensor_json = json.loads(sensor_data)
-            recordEnvData(con, d, sensor_json)
+            if isinstance(sensor_data, basestring):
+                sensor_data = sensor_data.strip()
+                sensor_json = json.loads(sensor_data)
+            else:
+                sensor_json = sensor_data
+            sensorId = int(sensor_json['id'])
+            recordEnvData(con, d, sensorId, sensor_json)
         except:
             logger.error("Json error: '%s'" % sensor_data)
             logger.error(': %s' % traceback.format_exc())

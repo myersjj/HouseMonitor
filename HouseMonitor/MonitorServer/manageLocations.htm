@@ -114,15 +114,18 @@ function showLocations() {
                         if (data.monitor_data.location_record.length == 0) return;
                         $( "#locationsDiv" ).empty();
                         while (data.monitor_data.location_record[0][i]) {
-                        	var lid = data.monitor_data.location_record[0][i].id;
-                        	var lname = data.monitor_data.location_record[0][i].locationName;
+                        	//console.log(dumpObj(data.monitor_data.location_record[0][i], 'location', ' ', 3));
+                        	var lid = data.monitor_data.location_record[0][i].Id;
+                        	var lname = data.monitor_data.location_record[0][i].LocationName;
                         	var lstatus = data.monitor_data.location_record[0][i].status;
+                        	var bstatus = data.monitor_data.location_record[0][i].bs;
                             console.debug('location ' + lid +
-                            	    '=' + lname + ':' + lstatus);
+                            	    '=' + lname + ':' + lstatus + 'bs=' + bstatus);
                             lhtml = "<br/>" + "<input hidden id=\"lid" + lid + "\" value=\"" + lid + "\"/>" +
                             "<span>" + lid + ": </span>" +
                             "<input id=\"lname" + lid + "\" value=\"" + lname + "\"/>" +
-                            "<span> Status: " + lstatus + "</span>";
+                            "<span> Status: " + lstatus + "</span>" +
+                            "<span> Battery: " + bstatus + "</span>";
                             console.log('loc html=' + lhtml);
                             $( lhtml).insertAfter( "#locationsDiv" );
                             i++;

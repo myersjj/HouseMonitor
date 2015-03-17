@@ -57,14 +57,15 @@ class ReceiverThread(threading.Thread):
             while True:
                 if shutdown_event.is_set():
                     print 'Producer stopping...'
-                    queue.put({"type": "shutdown"})  # wakes up consumer thread
+                    # wakes up consumer thread
+                    queue.put({"id": 0, "type": "shutdown"})
                     return
                 # read sensors
                 while True:
                     if shutdown_event.is_set():
                         print 'Producer stopping...'
                         # wakes up consumer thread
-                        queue.put({"type": "shutdown"})
+                        queue.put({"id": 0, "type": "shutdown"})
                         return
                     sensor_data = ser.readline()
                     if not sensor_data:

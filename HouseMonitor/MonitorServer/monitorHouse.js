@@ -14,15 +14,21 @@ var fs = require('fs');
 var sys = require('sys');
 var log4js = require('log4js');
 var logger = log4js.getLogger();
+require('string.prototype.startswith');
+require('string.prototype.endswith');
 
 var http = require('http');
 var dblite = require('dblite');
+var PythonShell = require('python-shell');
 
 // Use node-static module to serve chart for client-side dynamic graph
 var nodestatic = require('node-static');
 
 // Setup static server for current directory
 var staticServer = new nodestatic.Server(".");
+
+var vm = require("vm");
+var fs = require("fs");
 
 // Setup database connection for logging
 var db = dblite('/home/pi/house-monitor.db');
@@ -141,13 +147,14 @@ function selectMotion(response, locationId, num_records, start_date, end_date, c
 //Get location records from database
 function selectLocations(response, callback) {
 	// - callback is the output function
-	var locations = db
+	var locations = db.query('.headers ON')
 			.query(
-					"SELECT * FROM Location ORDER BY id;",
+					"SELECT l.id, locationname, l.status, (select battery.status FROM battery,location where battery.locationid=l.id order by battery.id desc LIMIT 1) as bs FROM location l ORDER BY l.id;",
 					[ ], {
-					    id: Number,
-					    locationName: String,
-					    status: String
+					    Id: Number,
+					    LocationName: String,
+					    status: String,
+					    bs: Number
 					  }, 
 					  function(err, rows) {
 						if (err) {
@@ -167,6 +174,7 @@ function selectLocations(response, callback) {
 						} else data = {};
 						callback(data);
 					});
+	console.log('locations=' + locations);
 };
 
 function addLocation(json) {
@@ -239,6 +247,35 @@ function handlePost(request, response, pathfile, json) {
 		response.end();
 		return;
 	}
+	console.log('handle python script POST, args=%r' % json);
+	var options = {
+			  mode: 'text',
+			  pythonPath: '/usr/bin/python',
+			  pythonOptions: ['-u'],
+			  scriptPath: '.',
+			  args: [json,]
+			};
+	PythonShell.run(pathfile, options, function (err, results) {
+			  if (err) {
+				  console.log(err);
+				  return;
+				  //throw err;
+			  }
+			  // results is an array consisting of messages collected during execution 
+			  //console.log('results: %j', results);
+			  console.log('results[0]=' + results[0]);
+			  console.log('results[3]=' + results[3]);
+			  //console.log('results[4]=' + results[4]);
+			  response.writeHead(200, {
+			  	"Content-type" : results[0]
+			  });
+			  //var json = [{jsonResponse: results[3]}];
+			  //console.log('json=' + JSON.stringify(results[3]));
+			  response.write(results[3]);
+			  response.end();
+			  return;
+			});
+	return;
 }
 
 function returnEnvData(response, tempData, humData, motionData) {
@@ -261,17 +298,26 @@ function(request, response) {
 	var url = require('url').parse(request.url, true);
 	var pathfile = url.pathname;
 	var query = url.query;
-	console.log('path=' + pathfile + '\n\t' + dumpObj(query, 'query', ' ', 5));
+	console.log(request.method + ':path=' + pathfile + '\n\t' + dumpObj(query, 'query', ' ', 5));
 	
 	if ( request.method === 'POST' ) {
         // the body of the POST is JSON payload.
-        var data = '';
-        request.addListener('data', function(chunk) { data += chunk; });
-        request.addListener('end', function() {
-            json = JSON.parse(data);
-            console.log(dumpObj(json, 'json', ' ', 5));
-            handlePost(request, response, pathfile, json);
-        });
+		if (pathfile.startsWith('/cgi-bin')) {
+			var postdata = '';
+			request.addListener('data', function(chunk) { postdata += chunk; });
+			request.addListener('end', function() {
+				console.log('post input=' + postdata);
+				handlePost(request, response, pathfile, postdata);
+			});
+		} else {
+			var data = '';
+			request.addListener('data', function(chunk) { data += chunk; });
+			request.addListener('end', function() {
+				json = JSON.parse(data);
+				console.log(dumpObj(json, 'json', ' ', 5));
+				handlePost(request, response, pathfile, json);
+			});
+		}
         return;
     }
 
