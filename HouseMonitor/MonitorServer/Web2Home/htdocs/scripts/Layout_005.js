@@ -41,7 +41,7 @@ function Layout_005() {
     
     $("#"+response.name+"Refresh").click( function() { alert("Do bin ich!") } );
     
-    // create the content of the 3 panels if available
+    // create the content of the 1 panels if available
     if( response.defContent ) {
       buildScreen( data+".content"+response.defContent, response.name+"Cont" );
     }

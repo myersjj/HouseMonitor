@@ -1,7 +1,7 @@
 var MakroNames = new Array();
 var MakroHash = new Array();
 
-function MakroList() {
+function MacroList() {
   this.createLayout = createLayout;
   this.updateContent = updateContent;
   this.cssPrefix="";

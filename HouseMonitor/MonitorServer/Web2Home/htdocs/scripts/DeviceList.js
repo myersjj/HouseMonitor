@@ -10,6 +10,7 @@ function DeviceList() {
 
   function createLayout( data, containerName ) {
     var response = eval( data );
+    console.log('DeviceList.createContent with: ' + resp);
     // get the css prefix to be used
     if( response.css ) {
       this.cssPrefix=response.css.split( "," )[1];
@@ -36,6 +37,7 @@ function DeviceList() {
 
   function updateContent(resp)
   {
+	  console.log('DeviceList.updateContent with: ' + resp);
     if( resp.cmd=="pwrlist" ) {
       DeviceNames = new Array();
       DeviceState = new Array();

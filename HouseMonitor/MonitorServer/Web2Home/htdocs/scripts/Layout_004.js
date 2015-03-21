@@ -23,7 +23,7 @@ function Layout_004() {
                       "</tr></table>" 
     );
       
-    // create the content of the 3 panels if available
+    // create the content of the 2 panels if available
     if( response.defContent1 ) {
       buildScreen( data+".content"+response.defContent1, response.name+"Cont1" );
     }

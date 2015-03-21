@@ -1,5 +1,5 @@
 /*
- * Layout1 contains a top-line with a headline, an optional line showing the time/date, a content-area and a bottom-line which might include a menu
+ * Layout2 contains a top-line with a headline, an optional line showing the time/date, a content-area and a bottom-line which might include a menu
  * Needed/possible settings:
  *   css: 'css-filename,css-prefix'        => this defines which CSS-file has to be loaded and the prefix which is used in that file for all CSS definitions
  *   name: xxx                             => the name is needed to make everythin unique in case the layout is used twice in a screen

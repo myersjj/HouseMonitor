@@ -151,13 +151,45 @@ screens = {
             }
         },
         'contentHeat': {
-            'name': 'MasterScreen',
+            'name': 'HeatScreen',
             'id': 'HeatScreen',
             'layout': 'Layout_002',
             'css': 'hometrek_0002,ht0002',
             'headline': 'Heat',
             'hlcolor': 'trk_hellgrau',
-            'menu': 'Timer,Devices'
+            'menu': 'Sensors,PIR',
+            'defContent1': '',
+            'defContent2': 'Htr',
+            'contentHtr': {
+                'name': 'Heat',
+                'id': 'Heat',
+                'layout': 'Layout_003',
+                'css': 'hometrek_0003,ht0003',
+                'headline': 'Heat',
+                'menu': 'Commands',
+                'menu_hover': '#ff9966',
+                'defContent1': 'HeatControl',
+                'defContent2': 'HeatList',
+                'defContent3': 'HeatStatus',
+                'contentHeatList': {
+                    'name': 'htrList',
+                    'layout': 'HeatList',
+                    'css': 'hometrek_0004,ht0004',
+                    'headline': 'Heat List'
+                },
+                'contentHeatControl': {
+                    'name': 'htrCntrl',
+                    'layout': 'HeatControl',
+                    'css': 'hometrek_0004,ht0004',
+                    'headline': 'Heat Control'
+                },
+                'contentHeatStatus': {
+                    'name': 'htrStat',
+                    'layout': 'HeatStatus',
+                    'css': 'hometrek_0004,ht0004',
+                    'headline': 'Heat Status'
+                }
+            }
         },
         'contentSecurity': {
             'name': 'MasterScreen',
