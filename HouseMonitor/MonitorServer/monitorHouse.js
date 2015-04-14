@@ -31,7 +31,7 @@ var vm = require("vm");
 var fs = require("fs");
 
 // Setup database connection for logging
-var db = dblite('/home/pi/house-monitor.db');
+var db = dblite('/home/pi/HouseMonitor/house-monitor.db');
 
 var MAX_DUMP_DEPTH = 10;
 
@@ -136,7 +136,7 @@ function selectMotion(response, locationId, num_records, start_date, end_date, c
 									+ err);
 							return;
 						}
-						console.log(dumpObj(rows, 'Motion rows=', ' ', 5));
+						//console.log(dumpObj(rows, 'Motion rows=', ' ', 5));
 						data = {
 							motion_record : [ rows ]
 						}

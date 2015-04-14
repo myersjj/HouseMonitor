@@ -34,9 +34,14 @@ import time
 import datetime
 import logging
 import json
+import requests
 import subprocess
+import RPi.GPIO as GPIO
 import sqlite3 as lite
 import twitterwrapper
+from Adafruit.CharLCD import Adafruit_CharLCD
+import Adafruit_SSD1306
+from PIL import Image, ImageDraw, ImageFont
 
 TWITTER_KEY = 'wFaa9oYzqjSlFhCvPeTGRoLHb'
 TWITTER_SECRET = 'K3hIB3mEP35yveIumudJ2KnLNEAz8bKWTNZFQNPyuasBocMNNW'
@@ -87,6 +92,13 @@ motionDetected = False
 locationId = locations[0]['locationId']
 locationName = locations[0]['locationName']
 offTime = None
+
+use_databin = config['use_databin']
+use_led = config['use_led']
+use_oled = config['use_oled']
+databin_url = config['databin_url']
+databin_id = config['databin_id']
+logger.debug('config complete...')
 
 
 def open_db(db_name):
@@ -182,8 +194,89 @@ humidityWarning = False
 tempWarningIssued = False
 humidityWarningIssued = False
 
+if use_led:
+    logger.debug("setup LCD")
+    # GPIO.cleanup()
+    lcd = Adafruit_CharLCD.Adafruit_CharLCD(pins_db=[23, 17, 27, 22])
+    lcd.begin(8, 2)
+    lcd.clear()
+    lcd.message('Startup!')
 
-def monitorStatus():
+# 128x32 display with hardware I2C:
+if use_oled:
+    logger.debug("setup OLED")
+    try:
+        disp = Adafruit_SSD1306.SSD1306_96_16(18)
+        # Initialize library.
+        disp.begin()
+        # Clear display.
+        disp.clear()
+        disp.display()
+        # Create blank image for drawing.
+        # Make sure to create image with mode '1' for 1-bit color.
+        width = disp.width
+        height = disp.height
+        image = Image.new('1', (width, height))
+        # Get drawing object to draw on image.
+        draw = ImageDraw.Draw(image)
+        # Draw a black filled box to clear the image.
+        draw.rectangle((0, 0, width, height), outline=0, fill=0)
+        # Draw some shapes.
+        # First define some constants to allow easy resizing of shapes.
+        padding = 2
+        shape_width = 20
+        top = padding
+        bottom = height - padding
+        # Move left to right keeping track of the current x position for drawing
+        # shapes.
+        x = padding
+        # Draw an ellipse.
+        draw.ellipse((x, top, x + shape_width, bottom), outline=255, fill=0)
+        x += shape_width + padding
+        # Draw a rectangle.
+        draw.rectangle((x, top, x + shape_width, bottom), outline=255, fill=0)
+        x += shape_width + padding
+        # Draw a triangle.
+        draw.polygon([(x, bottom), (x + shape_width / 2, top),
+                      (x + shape_width, bottom)], outline=255, fill=0)
+        x += shape_width + padding
+        # Draw an X.
+        draw.line((x, bottom, x + shape_width, top), fill=255)
+        draw.line((x, top, x + shape_width, bottom), fill=255)
+        x += shape_width + padding
+        # Load default font.
+        font = ImageFont.load_default()
+        # Alternatively load a TTF font.
+        # Some other nice fonts to try: http://www.dafont.com/bitmap.php
+        #font = ImageFont.truetype('Minecraftia.ttf', 8)
+        # Write two lines of text.
+        draw.text((x, top), 'Hello', font=font, fill=255)
+        draw.text((x, top + 20), 'World!', font=font, fill=255)
+        # Display image.
+        disp.image(image)
+        disp.display()
+    except:
+        logger.error('OLED error: %s' % traceback.format_exc())
+
+
+def getConfig(ser, sensor_data):
+    """ Send configuration data in JSON format (no more than 24 chars) """
+    ser.flushOutput()
+    ser.write("Pi Startup!\n")
+    if sensor_data == None or sensor_data[1] == 'c' or sensor_data.startswith('[startup]'):
+        for location in locations:
+            json = '{"id":%d,"i":%d}\n' % (
+                location["locationId"], location["interval"])
+            ser.write(json)
+            logger.info('sent config:%s' % json)
+            time.sleep(1)  # small wait to allow handler to read on other side
+    elif sensor_data[1] == 's':
+        logger.info('status=%s' % sensor_data)
+    else:
+        logger.error('status=%s' % sensor_data)
+
+
+def monitorStatus(ser):
     # check if locations transmitting ok
     # Login if necessary.
     return None  # for now...
@@ -235,7 +328,7 @@ def monitorStatus():
     return status
 
 
-def recordEnvData(con, today, sensorId, sensor_data):
+def recordEnvData(ser, con, today, sensorId, sensor_data):
     """ We get only short json messages with 1 data value (temp or humidity or pir) because of 24 byte
     limit sending RF messages. So we have to just update the one value"""
     global tempWarning, tempWarningIssued, humidityWarning, humidityWarningIssued
@@ -244,15 +337,19 @@ def recordEnvData(con, today, sensorId, sensor_data):
     con.row_factory = lite.Row  # use dictionaries
     cur = con.cursor()
     d = datetime.datetime.now()
-    recordMotionData(con, d, sensorId, sensor_data)
-    recordBatteryStatus(con, d, sensorId, sensor_data)
+    recordMotionData(ser, con, d, sensorId, sensor_data)
+    recordBatteryStatus(ser, con, d, sensorId, sensor_data)
     thisHour = d.time().hour
     try:
         tempF = sensor_data['tf']
+        if tempF < 0:
+            tempF = None
     except:
         tempF = None
     try:
         humidity = sensor_data['rh']
+        if humidity < 0:
+            humidity = None
     except:
         humidity = None
     if not tempF and not humidity:
@@ -313,8 +410,17 @@ def recordEnvData(con, today, sensorId, sensor_data):
 
     # Process temperature if available
     # get last row
+    lcdMessage = "%s:F=" % sensorId
     if tempF:
-        cur.execute("SELECT ID FROM Temperature ORDER BY id DESC LIMIT 1;")
+        if use_led:
+            lcd.clear()
+        lcdMessage += '%s-' % (tempF)
+
+        if use_databin:
+            r = requests.get(
+                'https://datadrop.wolframcloud.com/api/v1.0/Add?bin={}&loc={}&tempF={}'.format(databin_id, sensorId, tempF))
+        cur.execute(
+            "SELECT ID FROM Temperature Where LocationId=? ORDER BY id DESC LIMIT 1;", (sensorId,))
         row = cur.fetchone()
         if row == None:
             lastRowNum = 0
@@ -323,7 +429,8 @@ def recordEnvData(con, today, sensorId, sensor_data):
                 0, d.date().strftime('%Y-%m-%d').lstrip('0'), d.time(), ]
         else:
             lastRowNum = row["id"]
-            logger.debug("The Id of the last temp row is %d" % lastRowNum)
+            logger.debug("The Id of the last temp row is %d:%d" %
+                         (sensorId, lastRowNum))
             cur.execute("SELECT * FROM Temperature WHERE Id=:Id",
                         {"Id": lastRowNum})
             lastRow = cur.fetchone()
@@ -352,7 +459,8 @@ def recordEnvData(con, today, sensorId, sensor_data):
                              0, 0, 0.0, 0.0, sensorId))
                 con.commit()
                 lastRowNum = cur.lastrowid
-                logger.debug('Wrote new temp row {0}'.format(lastRowNum))
+                logger.debug(
+                    'Wrote new temp row {0} for loc {1}'.format(lastRowNum, sensorId))
                 cur.execute(
                     "SELECT * FROM Temperature WHERE ID=?;", (lastRowNum,))
                 lastRow = cur.fetchone()
@@ -405,12 +513,20 @@ def recordEnvData(con, today, sensorId, sensor_data):
             return
         con.commit()
         # Wait 30 seconds before continuing
-        logger.debug('Updated temp row {0}'.format(lastRowNum))
+        logger.debug('Updated temp row {}:{}'.format(sensorId, lastRowNum))
+    else:
+        lcdMessage += "n/a\n"
 
     # Process humidity if available
     # get last row
+    lcdMessage += "  h="
     if humidity:
-        cur.execute("SELECT ID FROM Humidity ORDER BY id DESC LIMIT 1;")
+        lcdMessage += '%s' % (humidity)
+        if use_databin:
+            r = requests.get(
+                'https://datadrop.wolframcloud.com/api/v1.0/Add?bin={}&loc={}&humidity={}'.format(databin_id, sensorId, humidity))
+        cur.execute(
+            "SELECT ID FROM Humidity WHERE LocationId=? ORDER BY id DESC LIMIT 1;", (sensorId,))
         row = cur.fetchone()
         if row == None:
             lastRowNum = 0
@@ -501,11 +617,17 @@ def recordEnvData(con, today, sensorId, sensor_data):
         con.commit()
         # Wait 30 seconds before continuing
         logger.debug('Updated humidity row {0}'.format(lastRowNum))
+    else:
+        lcdMessage += "n/a"
+    if use_led:
+        lcd.message(lcdMessage)
+    else:
+        ser.write(lcdMessage)
+        ser.write('\n')
+        logger.debug('oled msg: %s' % lcdMessage)
 
-# TODO: generalize for multiple PIRs
 
-
-def recordMotionData(con, d, sensorId, sensor_data):
+def recordMotionData(ser, con, d, sensorId, sensor_data):
     global offTime  # time motion sensor transitioned to off
     global motionDetected
 
@@ -558,7 +680,7 @@ def recordMotionData(con, d, sensorId, sensor_data):
         con.commit()
 
 
-def recordBatteryStatus(con, d, sensorId, sensor_data):
+def recordBatteryStatus(ser, con, d, sensorId, sensor_data):
     # if status is too lower, send alarm
     try:
         batteryStatus = sensor_data['bs']  # will be string True or False
@@ -586,13 +708,19 @@ def recordBatteryStatus(con, d, sensorId, sensor_data):
         'Updated battery row {} status={}'.format(lastRowNum, batteryStatus))
 
 
-def monitorRecord(sensor_data, init=False, term=False):
+def monitorRecord(ser, sensor_data, init=False, term=False):
     global con
 
     if term == True:
         # cleanup
         if con is not None:
             con.close()
+        if use_led:
+            lcd.clear()
+            lcd.message('Shutdown')
+        else:
+            ser.write('Pi Shutdown!\n')
+        GPIO.cleanup()
         return
 
     if init == True:
@@ -604,6 +732,7 @@ def monitorRecord(sensor_data, init=False, term=False):
             pass
 
         con = open_db(SQL_DB_NAME)
+        getConfig(ser, None)  # send config data to sensors
         return
 
     logger.debug("Received sensor_data: %s" % sensor_data)
@@ -620,7 +749,7 @@ def monitorRecord(sensor_data, init=False, term=False):
             else:
                 sensor_json = sensor_data
             sensorId = int(sensor_json['id'])
-            recordEnvData(con, d, sensorId, sensor_json)
+            recordEnvData(ser, con, d, sensorId, sensor_json)
         except:
             logger.error("Json error: '%s'" % sensor_data)
             logger.error(': %s' % traceback.format_exc())

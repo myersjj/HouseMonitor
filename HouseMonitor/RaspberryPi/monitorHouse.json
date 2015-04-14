@@ -3,11 +3,18 @@
 	"green_pin": 4,
 	"red_pin": 17,
 	"twitter": 0,
+	"use_databin": 0,
+	"use_led": 0,
+	"use_oled": 0,
+	"databin_url": "http://wolfr.am/40VUQT44",
+	"databin_id": "40VUQT44",
 	"locations": 
 	[
 		{
 			"locationId": 1,
 			"locationName": "Jim Office",
+			"interval": 300,
+			"use_oled": 1,
 			"monitor_temp": 
 			{
 				"ticks": 1,
@@ -35,7 +42,8 @@
 		},
 		{
 			"locationId": 2,
-			"locationName": "Front Porch",
+			"locationName": "Jim Desk",
+			"interval": 300,
 			"monitor_temp": 
 			{
 				"ticks": 1,
@@ -57,6 +65,58 @@
 				"ticks": 4,
 				"pin": 18
 			}
-		}
+		},
+        {
+            "locationId": 3,
+            "locationName": "Front Porch",
+            "interval": 300,
+            "monitor_temp": 
+            {
+                "ticks": 1,
+                "pin": 23,
+                "temp_range": 
+                {
+                    "high": 80,
+                    "low": 35
+                },
+
+                "humidity_range": 
+                {
+                    "high": 70,
+                    "low": 25
+                }
+            },
+            "monitor_motion": 
+            {
+                "ticks": 4,
+                "pin": 18
+            }
+        },
+        {
+            "locationId": 4,
+            "locationName": "Testing",
+            "interval": 300,
+            "monitor_temp": 
+            {
+                "ticks": 1,
+                "pin": 23,
+                "temp_range": 
+                {
+                    "high": 80,
+                    "low": 35
+                },
+
+                "humidity_range": 
+                {
+                    "high": 70,
+                    "low": 25
+                }
+            },
+            "monitor_motion": 
+            {
+                "ticks": 4,
+                "pin": 0
+            }
+        }
 	]
 }

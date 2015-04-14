@@ -7,9 +7,8 @@ import time
 import random
 import datetime
 import logging
-import json
 import serial
-from monitorRecord import monitorRecord, monitorStatus
+from monitorRecord import monitorRecord, monitorStatus, getConfig
 from Queue import Queue
 
 queue = Queue(10)
@@ -67,7 +66,10 @@ class ReceiverThread(threading.Thread):
                         # wakes up consumer thread
                         queue.put({"id": 0, "type": "shutdown"})
                         return
-                    sensor_data = ser.readline()
+                    try:
+                        sensor_data = ser.readline()
+                    except:
+                        break
                     if not sensor_data:
                         break
                     # sensor_data = {"id" : 1, "type": "env", "ts" : time.time(),
@@ -78,6 +80,8 @@ class ReceiverThread(threading.Thread):
                         if sensor_data[0] == '{':
                             queue.put(sensor_data)
                             logger.info("Produced {}".format(sensor_data))
+                        elif sensor_data[0] == '[':
+                            getConfig(ser, sensor_data)
                         else:  # got some debug info
                             logger.debug(sensor_data)
                 if (tickCounter % 8) == 0:
@@ -97,7 +101,7 @@ class ConsumerThread(threading.Thread):
     def run(self):
         global queue, stopThread, ser
 
-        monitorRecord(None, init=True)
+        monitorRecord(ser, None, init=True)
         try:
             while True:
                 if shutdown_event.is_set():
@@ -105,7 +109,7 @@ class ConsumerThread(threading.Thread):
                     return
                 sensor_data = queue.get()  # blocks until item available
                 if status_event.is_set():
-                    status = monitorStatus()
+                    status = monitorStatus(ser)
                     if status:
                         # write status for lcd output
                         count = ser.write(status)
@@ -115,12 +119,12 @@ class ConsumerThread(threading.Thread):
                             logger.error("Failed to write status.")
                         ser.write('\n')
                     status_event.clear()
-                monitorRecord(sensor_data)
+                monitorRecord(ser, sensor_data)
                 logger.debug("Consumed {}".format(sensor_data))
         except:
             logger.error('Consumer error: %s' % traceback.format_exc())
         finally:
-            monitorRecord(None, term=True)
+            monitorRecord(ser, None, term=True)
 
 
 def main():
