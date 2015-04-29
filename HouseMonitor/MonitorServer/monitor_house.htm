@@ -3,7 +3,7 @@
 <head>
 <title>PiMonitorServer - Plot of logged temperature</title>
 <meta name="description"
-	content="Plot of temperature from DHT22 sensor connected to Raspberry Pi">
+	content="Plot of temperature/humidity sensors connected to Raspberry Pi">
 <meta name="author" content="James Myers">
 <meta name="version" content="0.1">
 <script src="http://code.jquery.com/jquery-1.8.3.min.js"
@@ -108,7 +108,7 @@ function showLocations() {
 								id : 'seriesTemp',
 								color : 'red',
 								lineWidth : 3,
-								name : 'DHT22 temperature (\u00B10.5\u00B0C)',
+								name : 'temperature (\u00B10.5\u00B0C)',
 								type : 'line',
 								data : []
 							};
@@ -116,7 +116,7 @@ function showLocations() {
 								id : 'seriesHumidity',
 								color : 'green',
 								lineWidth : 3,
-								name : 'DHT22 humidity (\u00B12\u00B0%)',
+								name : 'humidity (\u00B12\u00B0%)',
 								type : 'line',
 								data : []
 							};
@@ -129,6 +129,15 @@ function showLocations() {
 								data : [],
 								step: 'left' // or 'center' or 'right'
 							};
+							var seriesBattery = {
+	                                id : 'seriesBattery',
+	                                color : 'blue',
+	                                lineWidth : 3,
+	                                name : 'Battery',
+	                                type : 'line',
+	                                data : [],
+	                                step: 'left' // or 'center' or 'right'
+	                            };
 							var i = 0;
 							// Iterate JSON data series and add to plot
 							//console.log(dumpObj(data, "data", " ", 2));
@@ -137,11 +146,15 @@ function showLocations() {
 							//		+ data.monitor_data.temperature_record);
 							var temp_range = data.monitor_data.temperature_range;
 							var humidity_range = data.monitor_data.humidity_range;
+							var battery_range = data.monitor_data.battery_range;
+							console.log(dumpObj(battery_range, "battery_range", " ", 2));
 							//console.log(dumpObj(chart.options, "chart options", 2, 10));
 							chart.options.yAxis[0].plotLines[0].value = temp_range[0];
 							chart.options.yAxis[0].plotLines[1].value = temp_range[1];
 							chart.options.yAxis[0].plotLines[2].value = humidity_range[0];
 							chart.options.yAxis[0].plotLines[3].value = humidity_range[1];
+							chart.options.yAxis[0].plotLines[4].value = battery_range[0];
+							//chart.options.yAxis[0].plotLines[5].value = battery_range[1];
 							chart.setTitle(null, { text: 'for ' + getLocationName()});
 							while (data.monitor_data.temperature_record[0][i]) {
 								var mdate = new Date(data.monitor_data.temperature_record[0][i].Date);
@@ -194,9 +207,22 @@ function showLocations() {
 								seriesMotion.data.push([ ltime * 1000, motion*25 ]);
 								i++;
 							}
+							i = 0;
+                            while (data.monitor_data.battery_record[0][i]) {
+                                var ctime = parseInt(data.monitor_data.battery_record[0][i].unix_time);
+                                var today = new Date();
+                                var tz = today.getTimezoneOffset();
+                                //convert ctime from UTC to local
+                                var ltime = ctime - tz * 60;
+                                var battperc = parseInt(data.monitor_data.battery_record[0][i].Status);
+                                //console.log('motion record ' + i + ' + ctime=' + ctime + ' status=' + motion);
+                                seriesBattery.data.push([ ltime * 1000, battperc ]);
+                                i++;
+                            }
 							chart.addSeries(seriesTemp);
 							chart.addSeries(seriesHumidity);
 							chart.addSeries(seriesMotion);
+							chart.addSeries(seriesBattery);
 						});
 	}
 	function doChart(startDate, endDate) {
@@ -218,7 +244,7 @@ function showLocations() {
 						}
 					},
 					title : {
-						text : 'Temperature/humidity/motion from Raspberry Pi logger'
+						text : 'Temperature/humidity/motion/battery from Raspberry Pi logger'
 					},
 					subtitle : {
 						text : 'for <location>',
@@ -283,7 +309,18 @@ function showLocations() {
 					        label : {
 					            text : 'Maximum humidity'
 					        }
-					    }]
+					    },
+                        {
+                            id: 'limit-min-batt',
+                            color: '#FF0000',
+                            dashStyle: 'LongDash',
+                            width: 2,
+                            value: 25,
+                            zIndex: 0,
+                            label : {
+                                text : 'Minimum battery'
+                            }
+                        }]
 					},
 					plotOptions : {
 						area : {

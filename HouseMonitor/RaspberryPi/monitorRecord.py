@@ -73,7 +73,8 @@ logger.addHandler(fh)
 
 # read and process json config file
 config = json.loads(open('monitorHouse.json').read())
-twitter = config['twitter']
+twitter_status = config['twitter_status']
+twitter_warning = config['twitter_warning']
 logger.debug('config=%s' % config)
 FREQUENCY_SECONDS = config['tick_interval']
 # GREEN_LED = config['green_pin']
@@ -259,17 +260,37 @@ if use_oled:
         logger.error('OLED error: %s' % traceback.format_exc())
 
 
-def getConfig(ser, sensor_data):
+def getConfig(ser, sensorId, sensor_data):
     """ Send configuration data in JSON format (no more than 24 chars) """
     ser.flushOutput()
     ser.write("Pi Startup!\n")
-    if sensor_data == None or sensor_data[1] == 'c' or sensor_data.startswith('[startup]'):
+    if sensor_data == None or sensorId > 0 or sensor_data.startswith('[startup]'):
         for location in locations:
-            json = '{"id":%d,"i":%d}\n' % (
-                location["locationId"], location["interval"])
-            ser.write(json)
-            logger.info('sent config:%s' % json)
-            time.sleep(1)  # small wait to allow handler to read on other side
+            if sensorId == 0 or sensorId == location['locationId']:
+                json = '{"id":%d,"i":%d}\n' % (
+                    location["locationId"], location["interval"])
+                ser.write(json)
+                ser.flush()
+                logger.info('sent config:%s' % json)
+                # small wait to allow handler to read on other side
+                time.sleep(2)
+                d = datetime.datetime.now()
+                seconds_since_midnight = (
+                    d - d.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+                doy = d.timetuple().tm_yday
+                json = '{"id":%d,"d":%s}\n' % (  # send date
+                    location["locationId"], doy)
+                ser.write(json)
+                ser.flush()
+                logger.info('sent config:%s' % json)
+                # small wait to allow handler to read on other side
+                time.sleep(2)
+                # update time of this sensor
+                json = '{"id":%d,"t":%d}\n' % (  # send time of day
+                    location["locationId"], seconds_since_midnight)
+                ser.write(json)
+                ser.flush()
+                logger.info('sent config:%s' % json)
     elif sensor_data[1] == 's':
         logger.info('status=%s' % sensor_data)
     else:
@@ -310,7 +331,7 @@ def monitorStatus(ser):
                              (unixtimeNow - lastReading))  # in seconds
                 if (unixtimeNow - lastReading) > 3600:
                     locationStatus = 'dead'
-                elif (unixtimeNow - lastReading) > 60:
+                elif (unixtimeNow - lastReading) > 600:
                     locationStatus = 'late'
                 else:
                     locationStatus = 'active'
@@ -329,14 +350,32 @@ def monitorStatus(ser):
 
 
 def recordEnvData(ser, con, today, sensorId, sensor_data):
-    """ We get only short json messages with 1 data value (temp or humidity or pir) because of 24 byte
-    limit sending RF messages. So we have to just update the one value"""
+    """ We get only short json messages with 1 or 2 data values (temp or humidity or pir) because of 24 byte
+    limit sending RF messages. So we have to just update the values present in the message."""
     global tempWarning, tempWarningIssued, humidityWarning, humidityWarningIssued
     global TempHigh, HumidityHigh
 
     con.row_factory = lite.Row  # use dictionaries
     cur = con.cursor()
     d = datetime.datetime.now()
+    try:
+        config = sensor_data['config']
+        getConfig(ser, sensorId, sensor_data)
+        return
+    except:
+        pass
+    # update time of this sensor
+    try:
+        ack = sensor_data['ack']
+    except:
+        ack = True
+    if ack:
+        seconds_since_midnight = (
+            d - d.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+        json = '{"id":%d,"t":%d}\n' % (  # send time of day
+                                         sensorId, seconds_since_midnight)
+        ser.write(json)
+        ser.flush()
     recordMotionData(ser, con, d, sensorId, sensor_data)
     recordBatteryStatus(ser, con, d, sensorId, sensor_data)
     thisHour = d.time().hour
@@ -366,13 +405,13 @@ def recordEnvData(ser, con, today, sensorId, sensor_data):
                 if tempF > TempHigh:
                     logger.warning(
                         '{0} Temperature too high - {1:0.1f}%!'.format(locationName, tempF))
-                    if twitter:
+                    if twitter_status:
                         twitterApi.statuses.update(
                             "{0} warning: temp too high - {1:0.1f}F!".format(locationName, tempF))
                 else:
                     logger.warning(
                         '{0} Temperature too low - {1:0.1f}%!'.format(locationName, tempF))
-                    if twitter:
+                    if twitter_status:
                         twitterApi.statuses.update(
                             "{0} warning: temp too low - {1:0.1f}F!".format(locationName, tempF))
             except:
@@ -383,13 +422,13 @@ def recordEnvData(ser, con, today, sensorId, sensor_data):
                 if humidity > HumidityHigh:
                     logger.warning(
                         '{0} Humidity too high - {1:0.1f}%!'.format(locationName, humidity))
-                    if twitter:
+                    if twitter_status:
                         twitterApi.statuses.update(
                             "{0} warning: humidity too high - {1:0.1f}%!".format(locationName, humidity))
                 else:
                     logger.warning(
                         '{0} Humidity too low - {1:0.1f}%!'.format(locationName, humidity))
-                    if twitter:
+                    if twitter_status:
                         twitterApi.statuses.update(
                             "{0} warning: humidity too low - {1:0.1f}%!".format(locationName, humidity))
             except:
@@ -400,7 +439,7 @@ def recordEnvData(ser, con, today, sensorId, sensor_data):
             logger.info(
                 '{0} Temp/humidity is now normal.'.format(locationName))
             try:
-                if twitter:
+                if twitter_status:
                     twitterApi.statuses.update(
                         "{0} temp/humidity is now normal!".format(locationName))
             except:
@@ -683,20 +722,32 @@ def recordMotionData(ser, con, d, sensorId, sensor_data):
 def recordBatteryStatus(ser, con, d, sensorId, sensor_data):
     # if status is too lower, send alarm
     try:
-        batteryStatus = sensor_data['bs']  # will be string True or False
+        batteryStatus = sensor_data['bs']
     except:
-        return  # no motion data in record
+        return  # no battery data in record
+    # TODO: if battery low, send warning message via Twitter or email
+    locationConfig = locations[sensorId - 1]
+    try:
+        monitorBattery = locationConfig['monitor_battery']
+        lowBattery = monitorBattery['low']
+        if batteryStatus <= lowBattery:
+            if twitter_warning:
+                twitterApi.statuses.update(
+                    "{0} warning: battery low - {1}%!".format(locationName, batteryStatus))
+    except:
+        pass
     cur = con.cursor()
-    cur.execute("SELECT ID FROM Battery WHERE locationId=? ORDER BY id DESC LIMIT 1;",
-                (sensorId,))
+    today = d.date().strftime('%Y-%m-%d').lstrip('0')
+    cur.execute("SELECT ID FROM Battery WHERE locationId=? AND Date=? ORDER BY id DESC LIMIT 1;",
+                (sensorId, today))
     row = cur.fetchone()
     if row == None:
         cur.execute("INSERT INTO Battery (unix_time, Date, Time, Status, LocationId) values(?,?,?,?,?)",
                     (int(time.mktime(d.timetuple())),
-                     d.date().strftime('%Y-%m-%d').lstrip('0'),
+                     today,
                      str(d.time()), 0.0, sensorId))
-    cur.execute("SELECT ID FROM Battery WHERE locationId=? ORDER BY id DESC LIMIT 1;",
-                (sensorId,))
+    cur.execute("SELECT ID FROM Battery WHERE locationId=? AND Date=? ORDER BY id DESC LIMIT 1;",
+                (sensorId, today))
     row = cur.fetchone()
     lastRowNum = row['id']
     #logger.debug('insert into motion...')
@@ -725,14 +776,14 @@ def monitorRecord(ser, sensor_data, init=False, term=False):
 
     if init == True:
         try:
-            if twitter:
+            if twitter_status:
                 twitterApi.statuses.update(
                     "House recorder starting at %s!" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         except:
             pass
 
         con = open_db(SQL_DB_NAME)
-        getConfig(ser, None)  # send config data to sensors
+        getConfig(ser, 0, None)  # send config data to sensors
         return
 
     logger.debug("Received sensor_data: %s" % sensor_data)

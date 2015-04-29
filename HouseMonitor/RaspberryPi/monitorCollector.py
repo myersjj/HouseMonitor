@@ -77,17 +77,18 @@ class ReceiverThread(threading.Thread):
                     # If something was read from the Serial Port, read and return
                     # the line
                     if len(sensor_data):
+                        tickCounter += 1
                         if sensor_data[0] == '{':
                             queue.put(sensor_data)
                             logger.info("Produced {}".format(sensor_data))
                         elif sensor_data[0] == '[':
-                            getConfig(ser, sensor_data)
+                            getConfig(ser, 0, sensor_data)
                         else:  # got some debug info
                             logger.debug(sensor_data)
-                if (tickCounter % 8) == 0:
-                    status_event.set()
-                time.sleep(random.randint(2, 4))
-                tickCounter += 1
+                    if (tickCounter % 8) == 0:
+                        status_event.set()
+                    break
+                #time.sleep(random.randint(2, 4))
         except:
             logger.error('Receiver error: %s' % traceback.format_exc())
         finally:

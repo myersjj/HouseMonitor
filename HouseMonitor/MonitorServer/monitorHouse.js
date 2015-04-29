@@ -144,6 +144,34 @@ function selectMotion(response, locationId, num_records, start_date, end_date, c
 					});
 };
 
+//Get motion records from database
+function selectBattery(response, locationId, num_records, start_date, end_date, callback) {
+	// - Num records is an SQL filter from latest record back through time series,
+	// - start_date is the first date in the time-series required,
+	// - callback is the output function
+	var current_motion = db.query('.headers ON')
+			.query(
+					"SELECT * FROM (SELECT * FROM Battery WHERE locationId=? AND date(date) >= date(?) AND date(date) <= date(?, '+1 days') ORDER BY unix_time DESC LIMIT ?) ORDER BY unix_time;",
+					[ locationId, start_date, end_date, num_records ], function(err, rows) {
+						if (err) {
+							response.writeHead(500, {
+								"Content-type" : "text/html"
+							});
+							response.end(err + "\n");
+							console.log('Error serving querying database. '
+									+ err);
+							return;
+						}
+						//console.log(dumpObj(rows, 'Battery rows=', ' ', 5));
+						data = {
+								battery_range : [50, 100],
+								battery_record : [ rows ]
+						}
+						console.log(dumpObj(data, 'Battery data=', ' ', 5));
+						callback(data);
+					});
+};
+
 //Get location records from database
 function selectLocations(response, callback) {
 	// - callback is the output function
@@ -284,7 +312,9 @@ function returnEnvData(response, tempData, humData, motionData) {
 		temperature_range : tempData.temperature_range,
 		humidity_record : humData.humidity_record,
 		humidity_range : humData.humidity_range,
-		motion_record : motionData.motion_record
+		motion_record : motionData.motion_record,
+		battery_record: batteryData.battery_record,
+		battery_range : batteryData.battery_range
 		}
 	};
 	response.end(JSON.stringify(data), "ascii");
@@ -361,8 +391,8 @@ function(request, response) {
 			}
 			callbacks++;
 			tempData = data;
-			if (callbacks == 3) {
-				returnEnvData(response, tempData, humData, motionData);
+			if (callbacks == 4) {
+				returnEnvData(response, tempData, humData, motionData, batteryData);
 			}
 		});
 		selectHum(response, locationId, num_obs, start_date, end_date, function(data) {
@@ -373,8 +403,8 @@ function(request, response) {
 			}
 			callbacks++;
 			humData = data;
-			if (callbacks == 3) {
-				returnEnvData(response, tempData, humData, motionData);
+			if (callbacks == 4) {
+				returnEnvData(response, tempData, humData, motionData, batteryData);
 			}
 		});
 		// call selectMotion function to get data from database
@@ -386,8 +416,21 @@ function(request, response) {
 			}
 			callbacks++;
 			motionData = data;
-			if (callbacks == 3) {
-				returnEnvData(response, tempData, humData, motionData);
+			if (callbacks == 4) {
+				returnEnvData(response, tempData, humData, motionData, batteryData);
+			}
+		});
+		// call selectBattery function to get data from database
+		selectBattery(response, locationId, num_obs, start_date, end_date, function(data) {
+			if (callbacks == 0) {
+				response.writeHead(200, {
+					"Content-type" : "application/json"
+				});
+			}
+			callbacks++;
+			batteryData = data;
+			if (callbacks == 4) {
+				returnEnvData(response, tempData, humData, motionData, batteryData);
 			}
 		});
 		return;

@@ -2,7 +2,8 @@
 	"tick_interval": 30,
 	"green_pin": 4,
 	"red_pin": 17,
-	"twitter": 0,
+	"twitter_status": 0,
+    "twitter_warning": 1,
 	"use_databin": 0,
 	"use_led": 0,
 	"use_oled": 0,
@@ -12,8 +13,8 @@
 	[
 		{
 			"locationId": 1,
-			"locationName": "Jim Office",
-			"interval": 300,
+			"locationName": "Jim Test",
+			"interval": 30,
 			"use_oled": 1,
 			"monitor_temp": 
 			{
@@ -38,7 +39,12 @@
 				"offDelay": 10,
 				"lightOff": 4216268,
 				"lightOn": 4216259
-			}
+			},
+            "monitor_battery": 
+            {
+                "ticks": 4,
+                "low": 50
+            }
 		},
 		{
 			"locationId": 2,
@@ -64,11 +70,16 @@
 			{
 				"ticks": 4,
 				"pin": 18
-			}
+			},
+            "monitor_battery": 
+            {
+                "ticks": 4,
+                "low": 50
+            }
 		},
         {
             "locationId": 3,
-            "locationName": "Front Porch",
+            "locationName": "Jim Desk2",
             "interval": 300,
             "monitor_temp": 
             {
