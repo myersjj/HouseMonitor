@@ -82,7 +82,7 @@ class ReceiverThread(threading.Thread):
                             queue.put(sensor_data)
                             logger.info("Produced {}".format(sensor_data))
                         elif sensor_data[0] == '[':
-                            getConfig(ser, 0, sensor_data)
+                            getConfig(ser, None, 0, sensor_data)
                         else:  # got some debug info
                             logger.debug(sensor_data)
                     if (tickCounter % 8) == 0:
@@ -131,7 +131,7 @@ class ConsumerThread(threading.Thread):
 def main():
     global ser
     # Open the serial Port
-    ser = serial.Serial('/dev/ttyAMA0', 57600, timeout=10)
+    ser = serial.Serial('/dev/ttyAMA0', 19200, timeout=10)
     ser.flushInput()  # Clear the input buffer
     ReceiverThread().start()
     ConsumerThread().start()

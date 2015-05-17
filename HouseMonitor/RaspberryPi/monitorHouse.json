@@ -14,7 +14,7 @@
 		{
 			"locationId": 1,
 			"locationName": "Jim Test",
-			"interval": 30,
+			"interval": 300,
 			"use_oled": 1,
 			"monitor_temp": 
 			{
@@ -35,10 +35,7 @@
 			"monitor_motion": 
 			{
 				"ticks": 4,
-				"pin": 18,
-				"offDelay": 10,
-				"lightOff": 4216268,
-				"lightOn": 4216259
+				"pin": 18
 			},
             "monitor_battery": 
             {
@@ -48,7 +45,7 @@
 		},
 		{
 			"locationId": 2,
-			"locationName": "Jim Desk",
+			"locationName": "Jim Office",
 			"interval": 300,
 			"monitor_temp": 
 			{
@@ -69,7 +66,10 @@
 			"monitor_motion": 
 			{
 				"ticks": 4,
-				"pin": 18
+				"pin": 18,
+                "offDelay": 10,
+                "lightOff": 4216268,
+                "lightOn": 4216259
 			},
             "monitor_battery": 
             {
@@ -79,8 +79,8 @@
 		},
         {
             "locationId": 3,
-            "locationName": "Jim Desk2",
-            "interval": 300,
+            "locationName": "Jim Test3",
+            "interval": 30,
             "monitor_temp": 
             {
                 "ticks": 1,
@@ -122,11 +122,6 @@
                     "high": 70,
                     "low": 25
                 }
-            },
-            "monitor_motion": 
-            {
-                "ticks": 4,
-                "pin": 0
             }
         }
 	]

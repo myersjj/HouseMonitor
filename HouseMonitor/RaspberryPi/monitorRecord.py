@@ -81,13 +81,10 @@ FREQUENCY_SECONDS = config['tick_interval']
 # RED_LED = config['red_pin']
 locations = config['locations']
 monitor_temp = locations[0]['monitor_temp']
-monitor_motion = locations[0]['monitor_motion']
 TempHigh = monitor_temp['temp_range']['high']
 TempLow = monitor_temp['temp_range']['low']
 HumidityHigh = monitor_temp['humidity_range']['high']
 HumidityLow = monitor_temp['humidity_range']['low']
-motionTicks = monitor_motion['ticks']
-offDelay = monitor_motion['offDelay']
 tickCounter = -1
 motionDetected = False
 locationId = locations[0]['locationId']
@@ -117,7 +114,7 @@ def open_db(db_name):
         # rows = cur.fetchall()
     except:
         # initialize the new table
-        createTable = "CREATE TABLE Location(Id INTEGER PRIMARY KEY, LocationName TEXT, status TEXT"
+        createTable = "CREATE TABLE Location(Id INTEGER PRIMARY KEY, LocationName TEXT, status TEXT, version TEXT"
         createTable += ");"
         cur.execute(createTable)
         con.commit()
@@ -260,13 +257,30 @@ if use_oled:
         logger.error('OLED error: %s' % traceback.format_exc())
 
 
-def getConfig(ser, sensorId, sensor_data):
+def getConfig(ser, cur, sensorId, sensor_data):
     """ Send configuration data in JSON format (no more than 24 chars) """
     ser.flushOutput()
     ser.write("Pi Startup!\n")
     if sensor_data == None or sensorId > 0 or sensor_data.startswith('[startup]'):
         for location in locations:
             if sensorId == 0 or sensorId == location['locationId']:
+                if sensorId != 0:
+                    try:
+                        sensorVersion = sensor_data['v']
+                        logger.debug('id=%d version=%s' %
+                                     (sensorId, sensorVersion))
+                        # update location record with latest version
+                        cur.execute("SELECT ID, version FROM Location WHERE Id=:locationId;",
+                                    {"locationId": sensorId})
+                        row = cur.fetchone()
+                        if row != None:
+                            if row["version"] != sensorVersion:
+                                logger.info(
+                                    'Update id=%d %s->%s' % (sensorId, row["version"], sensorVersion))
+                                sqlcmd = "UPDATE Location SET version=? WHERE ID=?;"
+                                cur.execute(sqlcmd, (sensorVersion, sensorId))
+                    except:
+                        pass
                 json = '{"id":%d,"i":%d}\n' % (
                     location["locationId"], location["interval"])
                 ser.write(json)
@@ -359,8 +373,8 @@ def recordEnvData(ser, con, today, sensorId, sensor_data):
     cur = con.cursor()
     d = datetime.datetime.now()
     try:
-        config = sensor_data['config']
-        getConfig(ser, sensorId, sensor_data)
+        config = sensor_data['cfg']
+        getConfig(ser, cur, sensorId, sensor_data)
         return
     except:
         pass
@@ -672,12 +686,18 @@ def recordMotionData(ser, con, d, sensorId, sensor_data):
 
     # if status is off for more than specified time, then turn off lights
     try:
-        sensorStatus = sensor_data['pir']  # will be string True or False
+        sensorStatus = sensor_data['m']  # will be 0 or 1
     except:
         #logger.error('pir error: %s' % traceback.format_exc())
         return  # no motion data in record
     #logger.debug('sensorStatus=%s' % sensorStatus)
-    if sensorStatus in ['true', 'True', True]:
+    try:
+        monitor_motion = locations[sensorId - 1]['monitor_motion']
+        motionTicks = monitor_motion['ticks']
+        offDelay = monitor_motion['offDelay']
+    except:
+        return
+    if sensorStatus:
         sensorStatus = True
     else:
         sensorStatus = False
@@ -783,7 +803,7 @@ def monitorRecord(ser, sensor_data, init=False, term=False):
             pass
 
         con = open_db(SQL_DB_NAME)
-        getConfig(ser, 0, None)  # send config data to sensors
+        getConfig(ser, None, 0, None)  # send config data to sensors
         return
 
     logger.debug("Received sensor_data: %s" % sensor_data)

@@ -9,13 +9,11 @@
 #include <printf.h>
 #include "DebugUtils.h"
 #include <Wire.h>
-#include <FiniteStateMachine.h>
 
-#define SENSOR_NANO 1  // Arduino Nano 5v
-#define SENSOR_UNO 2   // Arduino Uno 5v
-#define SENSOR_MC8 3   // 8 MHz atmega328 3.3v 
-#define SENSOR_MINI 4  // 8 MHz Mini Pro 3.3v
-#define SENSOR_TRINKET 5  // 12Mhz Pro Trinket 3.3v
+#define SENSOR_NANO 1  // Arduino Nano
+#define SENSOR_UNO 2   // Arduino Uno
+#define SENSOR_MC8 3   // 8 MHz atmega328
+#define SENSOR_MINI 4  // 8 MHz Mini Pro
 
 #define SENSOR_POWER_USB 00
 #define SENSOR_POWER_AA 01 // 2 AA cells - 3.0v
@@ -25,55 +23,42 @@
 #define RADIO_PA_LEVEL RF24_PA_MAX
 
 //#define NODE_ID 023     // Change this_node for each board you deploy.
-#define NODE_ID 01      // Change this_node for each board you deploy.
+#define NODE_ID 03      // Change this_node for each board you deploy.
 
 #if NODE_ID == 01
 #define SENSOR_MODEL SENSOR_MC8
 #define SENSOR_BATTERY SENSOR_POWER_AA
 #define RADIO_PA_LEVEL RF24_PA_HIGH
-#define BATTERY_SENSE_PIN A1
-
+#define BATTERY_PIN A1
 #elif NODE_ID == 02
 #define SENSOR_MODEL SENSOR_MC8
+#define DHT22_PIN 4
 #define PIR_PIN 5
-#define SENSOR_BATTERY SENSOR_POWER_USB
-#define RADIO_PA_LEVEL RF24_PA_MAX
 #define USE_OLED
-//#define RADIO_USE_IRQ
-//#define BATTERY_SENSE_PIN A1
-
+#define SENSOR_BATTERY SENSOR_POWER_COIN
+#define RADIO_PA_LEVEL RF24_PA_HIGH
+#define RADIO_USE_IRQ 
+#define BATTERY_PIN A1
 #elif NODE_ID == 03
 #define SENSOR_MODEL SENSOR_MINI
 #define USE_OLED
 #define PIR_PIN 5
-//#define RADIO_USE_IRQ
-
+#define RADIO_USE_IRQ 
 #elif NODE_ID == 04
-#define SENSOR_MODEL SENSOR_TRINKET
-#define USE_OLED
-#define SENSOR_BATTERY SENSOR_POWER_USB
-
+#define SENSOR_MODEL SENSOR_MC8
+#define DHT22_PIN 4
 #elif NODE_ID == 023
 #define SENSOR_MODEL SENSOR_MC8
 #define USE_OLED
 #define DHT22_PIN 4
 #endif
 
-// radio declarations
 const uint16_t this_node = NODE_ID;        // Address of our node in Octal format
 const uint16_t base_node = 00;       // Address of the other node in Octal format
 uint32_t lastContact = 0;  // seconds since last contact with mother
 uint16_t readings = 0;
-#define RF_CS 9
-#define RF_CSN 10
-#define RF_INT 0   // interrupt 0 uses pin 2
-#define RF_IRQ_PIN 2
 
 #ifdef DHT22_PIN
-// Connect pin 1 (on the left) of the sensor to +5V
-// Connect pin 2 of the sensor to whatever your DHTPIN is
-// Connect pin 4 (on the right) of the sensor to GROUND
-// Connect a 10K resistor from pin 2 (data) to pin 1 (power) of the sensor
 #define DHT_PIN DHT22_PIN
 #include <DHT22.h>
 #else
@@ -81,26 +66,38 @@ uint16_t readings = 0;
 //Create an instance of the object
 HTU21D myHumidity;
 #endif
-
 // Pin 13 has an LED connected on most Arduino boards.
 #define LED 13
+#define RF_CS 9
+#define RF_CSN 10
+#define RF_INT 0   // interrupt 0 uses pin 2
+#define RF_IRQ_PIN 2
 
-const char* version = "0.50";
+const char* version = "0.43";
 
+// Connect pin 1 (on the left) of the sensor to +5V
+// Connect pin 2 of the sensor to whatever your DHTPIN is
+// Connect pin 4 (on the right) of the sensor to GROUND
+// Connect a 10K resistor from pin 2 (data) to pin 1 (power) of the sensor
+#define UNIT 0      // 0 for Fahrenheit and 1 for Celsius
 uint32_t time_offset = 0;   // time in seconds when date/time received
 uint32_t seconds_since_midnight = 0;
 uint16_t day_of_year = 0;
 int32_t wait = -1L;
 bool configure_sent = false;
 bool configured = false;
-bool ackReceived = false;
+bool wakeForMessage = false;
+typedef enum {ss_init = 'i', ss_config = 'c', ss_working = 'w', ss_sleeping = 's', ss_interrupt = 'q', ss_receive = 'r', ss_ack = 'a'} sensor_state_e;
+char sensorState = ss_init;
+bool timerExpired = true;
+bool firstLoop = true;
 
 #ifdef USE_OLED
 #define OLED_FONT u8g_font_profont11r
 #define OLED_HEIGHT 6
 #define OLED_WIDTH 20
 U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NO_ACK);	// Display which does not send ACK
-char oled_lines[OLED_HEIGHT][OLED_WIDTH + 1];
+char oled_lines[OLED_HEIGHT][OLED_WIDTH+1];
 #endif
 
 int eeAddress = 0; //EEPROM address to start reading from
@@ -112,6 +109,8 @@ struct MyObject {
   char name[16];
 };
 
+unsigned long awakeTime = 500;                          // How long in ms the radio will stay awake after leaving sleep mode
+unsigned long sleepTimer = 0;                           // Used to keep track of how long the system has been awake
 RF24 radio(RF_CS, RF_CSN);
 RF24Network network(radio);          // Network uses that radio
 //This is for sleep mode. It is not really required, as users could just use the number 0 through 10
@@ -122,24 +121,6 @@ DHT22 myDHT22(DHT22_PIN);
 bool motionDetected = false;
 uint16_t config_interval = 300;
 MyObject sensorConfig; //Variable to store custom object read from EEPROM.
-
-// Finite State Machine declarations
-//how many states are we cycling through?
-const byte NUMBER_OF_SELECTABLE_STATES = 9;
-/** this is the definition of the states that our program uses */
-State init_s(doInit);
-State config_s(doConfig);
-State configWait_s(doConfigWait);
-State configRetry_s(doConfigRetry);
-State readSensors_s(doReadSensors);
-State waitAck_s(doWaitAck);
-State sleep_s(doSleep);
-static unsigned long configStartTime = 0;
-static unsigned long configResume = 0;
-static unsigned long ackResume = 0;
-
-/** the state machine controls which of the states get attention and execution time */
-FSM stateMachine = FSM(init_s); //initialize state machine, start in state: init_s
 
 #ifdef DEBUG
 void blink(int n) {
@@ -157,29 +138,29 @@ void blink(int n) {
 
 #ifdef USE_OLED
 #define OLED_LOG(s, line, x, clear, update) \
-  oled_log(s, line, x, clear, update)
+    oled_log(s, line, x, clear, update)
 #define OLED_SLEEP() \
-  delay(4000);u8g.sleepOn();delay(200)
+    delay(4000);u8g.sleepOn();delay(200)
 #define OLED_TOD() \
-  updateTOD()
+    updateTOD()
 void oled_log(const char* s, uint8_t line, uint8_t x, bool clear, bool update) {
-  uint8_t l = min(OLED_WIDTH - x, strlen(s));
+  uint8_t l = min(OLED_WIDTH-x, strlen(s));
   if (clear) {
     memset(oled_lines[line], ' ', OLED_WIDTH);
   }
-  memcpy(&oled_lines[line][x], s, l);
+  memcpy(&oled_lines[line][x], s, l); 
   if (!update) return;
   //u8g.setFont(u8g_font_unifontr);
   //u8g.setFont(u8g_font_6x12r);
   u8g.sleepOff();
   u8g.setFont(OLED_FONT);
-  uint8_t lineHeight = u8g.getFontAscent() - u8g.getFontDescent();
+  uint8_t lineHeight = u8g.getFontAscent()-u8g.getFontDescent();
   u8g.firstPage();
-  do {
-    for (int i = 1; i <= OLED_HEIGHT; i++) {
-      u8g.drawStr( 0, i * lineHeight - 3, oled_lines[i - 1]);
+  do {  
+    for (int i=1; i<=OLED_HEIGHT; i++) {
+      u8g.drawStr( 0, i*lineHeight-3, oled_lines[i-1]);
     }
-  } while ( u8g.nextPage() );
+  } while( u8g.nextPage() );  
   //delay(5000); //allow me to see screen
 }
 #else
@@ -188,39 +169,61 @@ void oled_log(const char* s, uint8_t line, uint8_t x, bool clear, bool update) {
 #define OLED_TOD()
 #endif
 
-#ifdef BATTERY_SENSE_PIN
+#ifdef BATTERY_PIN
 int oldBatteryPcnt = 0;
-/* Internal_ref=1.1V, res=10bit=2^10-1=1023
-2AA: Vin/Vbat=470e3/(1e6+470e3), 3AA: Vin/Vbat=680e3/(2.5e6+680e3), 4AA: Vin/Vbat=1e6/(1e6+5e6), 
-5-6AA: Vin/Vbat=680e3/(5e6+680e3), 6-8AA: Vin/Vbat=1e6/(1e6+10e6)  
-Vlim = 1.1*Vbat/Vin = 9.188235 V (Set eventually to Vmax) this is for 6-AA
-Volts per bit = Vlim/1023 = 0.008982
-*/
+#define VBAT_PER_BITS 0.003363075  // Calculated volts per bit from the used battery monitoring voltage divider.   
+//Internal_ref=1.1V, res=10bit=2^10-1=1023, 
+//Eg for 3V (2AA): Vin/Vb=R1/(R1+R2)=470e3/(1e6+470e3),  
+//Vlim=Vb/Vin*1.1=3.44V, Volts per bit = Vlim/1023= 0.003363075
+//For 3.7v LIR2032: 
+#define VMIN 1.9  // Battery monitor lower level. Vmin_radio=1.9V
 #if SENSOR_BATTERY == SENSOR_POWER_AA
-#define VMIN 1.5 // (Min input voltage to regulator according to datasheet or guessing. (?) )
-#define VMAX 3.0 // (Known or desired voltage of full batteries. If not, set to Vlim.)
-#define VLIM 3.13
-#define VOLTS_PER_BIT VLIM/1023L
-#endif
-#if SENSOR_BATTERY == SENSOR_POWER_COIN
-#define VMIN 1.5 // (Min input voltage to regulator according to datasheet or guessing. (?) )
-#define VMAX 4.0  //  " " " high level. Vmin<Vmax<=4.0
-#define VLIM 3.13
-#define VOLTS_PER_BIT VLIM/1023L
+  #define VMAX 3.3  //  " " " high level. Vmin<Vmax<=3.44
+#else
+  #define VMAX 3.7  //  " " " high level. Vmin<Vmax<=3.44
 #endif
 
 long readVcc() {
-   int sensorValue = analogRead(BATTERY_SENSE_PIN);    // Battery monitoring reading
+  int sensorValue = analogRead(BATTERY_PIN);    // Battery monitoring reading
 //  Serial.println(sensorValue);
-  float Vbat  = sensorValue * VOLTS_PER_BIT;
+  float Vbat  = sensorValue * VBAT_PER_BITS;
 //  Serial.print("Battery Voltage: "); Serial.print(Vbat); Serial.println(" V");
   int batteryPcnt = static_cast<int>(((Vbat-VMIN)/(VMAX-VMIN))*100.);   
 //  Serial.print("Battery percent: "); Serial.print(batteryPcnt); Serial.println(" %");
   if (oldBatteryPcnt != batteryPcnt) {
     oldBatteryPcnt = batteryPcnt;
-  }  
+  }
   return batteryPcnt;
 }
+#if 0
+long readVcc2() {
+  // Read 1.1V reference against AVcc
+  // set the reference to Vcc and the measurement to the internal 1.1V reference
+  #if defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+    ADMUX = _BV(REFS0) | _BV(MUX4) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+  #elif defined (__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
+    ADMUX = _BV(MUX5) | _BV(MUX0);
+  #elif defined (__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
+    ADMUX = _BV(MUX3) | _BV(MUX2);
+  #else
+    ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+  #endif  
+ 
+  delay(2); // Wait for Vref to settle
+  ADCSRA |= _BV(ADSC); // Start conversion
+  while (bit_is_set(ADCSRA,ADSC)); // measuring
+ 
+  uint8_t low  = ADCL; // must read ADCL first - it then locks ADCH  
+  uint8_t high = ADCH; // unlocks both
+ 
+  long millivolts = (high<<8) | low;
+ 
+  millivolts = 1125300L / millivolts; // Calculate Vcc (in mV); 1125300 = 1.1*1023*1000
+  long measured = analogRead(BATTERY_PIN);
+  long voltage = millivolts * measured / 1023; // answer is in millivolts
+  return millivolts; // Vcc in millivolts
+}
+#endif
 #else
 long readVcc() {
   return 0L;
@@ -231,53 +234,46 @@ boolean sendMessage(char *buffer, char msgtype) {
   // transmit the data
   //Serial.print("\nTransmitting..."); Serial.println(remaining);
   //Serial.flush();
-  // RF24 only writes 32 bytes max in each payload, 8 byte header and 24 data
+  // RF24 only writes 32 bytes max in each payload, 8 byte header and 24 data, so split it up if needed
   int bufsize = strlen(buffer);
   buffer[bufsize] = '\0';  // ensure buffer is terminated properly
   RF24NetworkHeader header(/*to node*/ base_node, /*type*/ msgtype);
-  DEBUG_PRINT_START("Sending packet to "); DEBUG_PRINT(base_node); DEBUG_PRINT(" at "); DEBUG_PRINT(millis());
-  DEBUG_PRINT(" "); DEBUG_PRINT(msgtype); DEBUG_PRINT(":"); DEBUG_PRINTLN(bufsize);
-  bool sendOK = network.write(header, buffer, bufsize + 1); // add 1 to include terminator
+  DEBUG_PRINT_START("Sending packet to "); DEBUG_PRINT(base_node); DEBUG_PRINT(" at ");DEBUG_PRINT(millis()); 
+  DEBUG_PRINT(" ");DEBUG_PRINT(msgtype); DEBUG_PRINT(":"); DEBUG_PRINTLN(bufsize);
+  bool sendOK = network.write(header, buffer, bufsize + 1); // add 1 to include terminator 
   if (!sendOK) {
     DEBUG_PRINTLN("Write buffer failed");
     OLED_LOG("Write failed", 1, 0, true, true);
     // signal error
     DEBUG_BLINK(1);
   } else {
-    lastContact = millis() / 1000L;
+    lastContact = millis()/1000L;
     DEBUG_PRINT_START("sent="); DEBUG_PRINT(buffer); DEBUG_PRINTLN("...");
     OLED_LOG(" ", 1, 0, true, false);
     OLED_LOG(buffer, 3, 0, true, true);
-  }
+  } 
   DEBUG_FLUSH();
   return sendOK;
 }
 
 void setup() {
-
-}
-
-void doInit() {
   char buffer[25];
-#ifdef DEBUG
+  
   Serial.begin(9600);
-#else
-  Serial.begin(57600);
-#endif
   //printf_begin();
   DEBUG_PRINT_START("RF24 v"); DEBUG_PRINT(version); DEBUG_PRINTLN(" sensor starting...");
 #ifdef USE_OLED
-  memset(oled_lines, ' ', OLED_HEIGHT * (OLED_WIDTH + 1));
-  for (int i = 0; i < OLED_HEIGHT; i++) {
+  memset(oled_lines, ' ', OLED_HEIGHT*(OLED_WIDTH+1));
+  for (int i=0; i<OLED_HEIGHT; i++) {
     oled_lines[i][OLED_WIDTH] = '\0';
   }
   // initialize OLED
   if ( u8g.getMode() == U8G_MODE_BW ) {
     u8g.setColorIndex(1);         // pixel on
   }
-  sprintf(buffer, "%2d  yyy.hh:mm:ss    ", this_node);
+  sprintf(buffer, "%2d  yyy.hh:mm:ss   %c", this_node, sensorState);
   OLED_LOG(buffer, 0, 0, true, false);
-  OLED_LOG("01234567890123456789", OLED_HEIGHT - 1, 0, true, true); // test last line length
+  OLED_LOG("01234567890123456789", OLED_HEIGHT-1, 0, true, true);  // test last line length
 #endif
   EEPROM.get( eeAddress, sensorConfig );
   if (!sensorConfig.initialized) {
@@ -288,8 +284,8 @@ void doInit() {
   }
   sensorConfig.restarts += 1;
   config_interval = sensorConfig.interval;
-  config_interval = (config_interval < 0) ? 300 : config_interval;
-  config_interval = (config_interval > 3600) ? 300 : config_interval;
+  config_interval = (config_interval<0) ? 300 : config_interval;
+  config_interval = (config_interval>3600) ? 300 : config_interval;
   EEPROM.put( eeAddress, sensorConfig );
 #ifndef DHT22_PIN
 #ifdef PIR_PIN
@@ -314,8 +310,8 @@ void doInit() {
 #ifdef PIR_PIN
   DEBUG_PRINT(" PIR "); DEBUG_PRINT(PIR_PIN);
 #endif
-#ifdef BATTERY_SENSE_PIN
-  DEBUG_PRINT(" bat "); DEBUG_PRINT(BATTERY_SENSE_PIN);
+#ifdef BATTERY_PIN
+  DEBUG_PRINT(" bat "); DEBUG_PRINT(BATTERY_PIN);
 #endif
   DEBUG_PRINT(" int "); DEBUG_PRINTLN(config_interval);
   //pinMode(LED, OUTPUT);
@@ -346,59 +342,7 @@ void doInit() {
   sendMessage(buffer, 'i');
   Serial.flush();
   DEBUG_BLINK(this_node);
-  configStartTime = millis();
-  stateMachine.transitionTo(config_s);
-}
-
-void doConfig() {
-  char configMsg[25];
-  sprintf(configMsg, "{\"cfg\":1,\"v\":\"%s\"}", version);
-  //OLED_LOG(configMsg, 1, 0, true);
-  bool sendOK = sendMessage(configMsg, 'c');
-  if (sendOK) {
-    configure_sent = true;
-    configStartTime = millis();
-    configResume = configStartTime + 10000;
-    stateMachine.transitionTo(configWait_s);
-  } else {
-    //Serial.println("request config failed...");
-    OLED_LOG("config failed", 1, 0, true, true);
-    DEBUG_BLINK(1);
-    configResume = configStartTime + 60000;
-    // TODO: sleep for a minute
-    stateMachine.transitionTo(configRetry_s);
-  }
-}
-
-void doConfigRetry() {
-  if (millis() > configResume) {
-    configStartTime = millis();
-    stateMachine.transitionTo(config_s);
-  }
-}
-
-void doConfigWait() {
-  checkNetwork();
-  if (configured) {
-    stateMachine.transitionTo(readSensors_s);
-  } else {
-    if (millis() > configResume) {
-      configStartTime = millis();
-      stateMachine.transitionTo(config_s);
-    }
-  }
-}
-
-void doWaitAck() {
-  checkNetwork();
-  if (ackReceived) {
-    ackReceived = false;
-    stateMachine.transitionTo(sleep_s);
-  } else {
-    if (millis() > ackResume) {
-      stateMachine.transitionTo(sleep_s);
-    }
-  }
+  sensorState = ss_config;
 }
 
 int ftoa(char *a, float f) //translates floating point readings into strings to send over the air
@@ -411,55 +355,93 @@ int ftoa(char *a, float f) //translates floating point readings into strings to 
 }
 #ifdef USE_OLED
 void updateTOD() {
-  char looptime[OLED_WIDTH + 1];
-  uint32_t ssm = ((millis() / 1000L) - time_offset) + seconds_since_midnight; // seconds since midnight
-  uint16_t days = ssm / 86400L;
+  char looptime[OLED_WIDTH+1];
+  uint32_t ssm = ((millis()/1000L) - time_offset) + seconds_since_midnight;  // seconds since midnight
+  uint16_t days = ssm/86400L;
   ssm = ssm % 86400L;
-  uint16_t hh = ssm / 3600L;
-  uint16_t mm = (ssm - (hh * 3600L)) / 60;
+  uint16_t hh = ssm/3600L;
+  uint16_t mm = (ssm - (hh*3600L))/60;
   uint16_t ss = ssm % 60;
-  sprintf(looptime, "%03u.%02u:%02u:%02u    ", day_of_year + days, hh, mm, ss);
+  sprintf(looptime, "%03u.%02u:%02u:%02u   %c", day_of_year+days, hh, mm, ss, sensorState);
   OLED_LOG(looptime, 0, strlen(" 3  "), false, false);
-  sprintf(looptime, "%03u in %06u %05u", readings, lastContact, (millis() / 1000L) - lastContact);
+  sprintf(looptime, "%03u in %06u %05u", readings, lastContact, (millis()/1000L) - lastContact);
   OLED_LOG(looptime, 5, 0, true, true);
 }
 #endif
 void loop() {
-  //THIS LINE IS CRITICAL
-  //do not remove the stateMachine.update() call, it is what makes this program 'tick'
-  stateMachine.update();
-
-  //OLED_TOD();
-  //checkNetwork();
-}
-
-void doSleep() {
-  // # cycles must be <= 127
-  int sleepCycles = config_interval/8;
-  char sleepMsg[21];
-  sprintf(sleepMsg, "Sleep %d seconds", config_interval);
-  OLED_LOG(sleepMsg, 1, 0, true, true);
-  OLED_TOD();
-  OLED_SLEEP();
-  radio.stopListening();         // Switch to PTX mode. Payloads will be seen as ACK payloads, and the radio will wake up
-  byte adcsra = ADCSRA;          //save the ADC Control and Status Register A
-  ADCSRA = 0;                    //disable the ADC
-  do {
-#ifdef RADIO_USE_IRQ
-    bool fullTime = network.sleepNode(min(127, sleepCycles), RF_INT);  // Sleep the node for n cycles of 8 second intervals
-#else
-    bool fullTime = network.sleepNode(min(127, sleepCycles), 255);  // Sleep the node for n cycles of 8 second intervals
-#endif
-    if (!fullTime) {
-      sprintf(sleepMsg, "Wake RF IRQ");
-      OLED_LOG(sleepMsg, 1, 0, true, true);
-      break;  // got interrupt so we need to handle it
-    } else {
-      sleepCycles -= 127;
+  //if (timerExpired || !configured) {
+    OLED_TOD();
+    checkNetwork();
+    if (!configure_sent) {
+      char configMsg[25];
+      sprintf(configMsg, "{\"id\":%d,\"config\":1}", this_node);
+      //OLED_LOG(configMsg, 1, 0, true);
+      bool sendOK = sendMessage(configMsg, 'c');
+      if (sendOK) {
+        configure_sent = true;
+        wait = 100;  // wait .1 second for replies
+      } else {
+        //Serial.println("request config failed...");
+        OLED_LOG("config failed", 1, 0, true, true);
+        DEBUG_BLINK(1);
+        wait = 10*1000;  // wait 10 seconds before resend
+      }
     }
-  } while (sleepCycles > 0);
-  ADCSRA = adcsra;               //restore ADCSRA
-  stateMachine.transitionTo(readSensors_s);
+  //}
+  if ((firstLoop || configured) && timerExpired) {
+    sensorState = ss_working;
+    if (firstLoop) {
+      firstLoop = false;
+      doWork();
+    }
+    wakeForMessage = false;
+    wait = config_interval * 1000L;
+  } else {
+    wait = 100;  // wait .1 second for replies
+  }
+
+  if((millis() - sleepTimer) > awakeTime){  // Want to make sure the Arduino stays awake for a little while when data comes in.
+     if (wait <= 0) {
+       delay(1000);
+     } else {
+       sleepTimer = millis();           // Reset the timer value
+       if (configured) {
+         // # cycles must be <= 127
+         int sleepCycles = wait/1000L;
+         char sleepMsg[21];
+         sprintf(sleepMsg, "Sleep %d seconds", sleepCycles);
+         OLED_LOG(sleepMsg, 1, 0, true, true);
+         sensorState = ss_sleeping;
+         OLED_TOD();
+         OLED_SLEEP();
+         radio.stopListening();         // Switch to PTX mode. Payloads will be seen as ACK payloads, and the radio will wake up
+         byte adcsra = ADCSRA;          //save the ADC Control and Status Register A
+         ADCSRA = 0;                    //disable the ADC
+         do {
+           #ifdef RADIO_USE_IRQ
+           bool fullTime = network.sleepNode(min(127, sleepCycles), RF_INT);  // Sleep the node for n cycles of 8 second intervals
+           #else
+           bool fullTime = network.sleepNode(min(127, sleepCycles), 255);  // Sleep the node for n cycles of 8 second intervals
+           #endif
+           if (!fullTime) {
+             sensorState = ss_interrupt;
+             sprintf(sleepMsg, "Wake RF IRQ");
+             OLED_LOG(sleepMsg, 1, 0, true, true);
+             break;  // got interrupt so we need to handle it
+           } else {
+             sleepCycles -= 127;
+           }
+         } while (sleepCycles > 0);
+         ADCSRA = adcsra;               //restore ADCSRA
+         if (sleepCycles <= 0) {
+           timerExpired = true;
+         }
+       } else {
+         delay(wait);  // wait for configuration messages
+       }
+     }
+     sensorState = configured ? ss_working : ss_config;
+  }
 }
 
 void checkNetwork() {
@@ -467,14 +449,16 @@ void checkNetwork() {
 
   // can only receive 24 bytes of data!!!
   while ( network.available() ) {     // Is there anything ready for us?
+    sensorState = ss_receive;
     RF24NetworkHeader header;        // If so, grab it and process it
     network.peek(header);
     DEBUG_PRINT_START("header="); DEBUG_PRINTLN((char)header.type);
     uint8_t payload[25];  // we'll receive a packet
     memset(payload, 0, sizeof(payload));  // clear the buffer
-    int count = network.read(header, &payload, sizeof(payload) - 1);
+    int count = network.read(header, &payload, sizeof(payload)-1);
     payload[count] = 0;  // terminate buffer
     OLED_LOG((char*)payload, 3, 0, true, true);
+    wakeForMessage = true;
     unsigned int interval = 0;
     switch (header.type) {
       case 'c': {
@@ -498,10 +482,13 @@ void checkNetwork() {
             DEBUG_PRINT_START("interval="); DEBUG_PRINTLN(config_interval);
             if (root.containsKey("t")) {
               seconds_since_midnight = root["t"];
-              time_offset = millis() / 1000;
+              time_offset = millis()/1000;
               configured = (day_of_year != 0);
+              if (configured) {
+                timerExpired = true;
+                wakeForMessage = false;
+              }
               OLED_TOD();
-              ackReceived = true;
             }
             if (root.containsKey("d")) {
               day_of_year = root["d"];
@@ -509,6 +496,7 @@ void checkNetwork() {
               sprintf(doy, "%03d", day_of_year);
               OLED_LOG(doy, 0, strlen(" 3  "), false, true);
               configured = (seconds_since_midnight != 0);
+              wakeForMessage = false;
               OLED_TOD();
             }
           }
@@ -519,16 +507,16 @@ void checkNetwork() {
         break;
     }  //end switch
   }  // end while
-  //delay(200);  // let interrupts settle
+  delay(200);  // let interrupts settle
 }
 
 // get sensor inputs
-void doReadSensors() {
+void doWork() {
   readings++;
 #ifdef PIR_PIN
   bool pir = false;
   uint8_t pirv = digitalRead(PIR_PIN);
-  Serial.print("pirv="); Serial.println(pirv);
+  Serial.print("pirv=");Serial.println(pirv);
   pir = (pirv == 1) ? true : false;
 #endif
   // Reading temperature or humidity takes about 250 milliseconds!
@@ -577,7 +565,7 @@ void doReadSensors() {
 #else
   h = myHumidity.readHumidity();
   f = myHumidity.readTemperature();  // in Celsius
-  f = (f * 1.8) + 32.0;
+  f = (f*1.8)+32.0;
 #endif
   //build the message
   char temp[6]; //2 int, 2 dec, 1 point, and \0
@@ -591,7 +579,11 @@ void doReadSensors() {
     DEBUG_PRINTLN(buffer);
     t = -1; f = -1; h = -1;
   } else {
-    ftoa(temp, f);
+    if (UNIT == 0) {  //choose the right unit F or C
+      ftoa(temp, f);
+    } else {
+      ftoa(temp, t);
+    }
     ftoa(hum, h);
   }
   Serial.flush();
@@ -599,14 +591,14 @@ void doReadSensors() {
   // send temperature/humidity message
   StaticJsonBuffer<50> jsonBuffer1;
   JsonObject& message1 = jsonBuffer1.createObject();
-  if (isnan(f) || (f > 120.0))
+  if (isnan(t))
     message1["tf"] = -1;
   else message1["tf"] = f;
-  if (isnan(h) || (h == 0.0) || (h > 100.0)) {
+  if (isnan(h) || (h == 0.0)) {
     message1["rh"] = -1;
-#ifdef DHT22_PIN
-    message1["err"] = errorCode;
-#endif
+    #ifdef DHT22_PIN
+      message1["err"] = errorCode;
+    #endif
   }
   else message1["rh"] = h;
   memset(buffer, 0, sizeof(buffer));  // clear buffer to avoid reuse
@@ -624,7 +616,7 @@ void doReadSensors() {
   Serial.flush();
   if (motionDetected != pir) {
     // send pir message
-    message3["m"] =  pir ? 1 : 0;
+    message3["pir"] =  pir ? "True" : "False";
     sendMessage3 = true;
     motionDetected = pir;
   }
@@ -633,7 +625,7 @@ void doReadSensors() {
   OLED_LOG(itoa(pir, pirstr, 10), 2, strlen("00.00 00.00 "), false, true);
 #endif
 #endif
-#ifdef BATTERY_SENSE_PIN
+#ifdef BATTERY_PIN
   // send battery status message
   message3["bs"] =  readVcc();
   sendMessage3 = true;
@@ -645,8 +637,6 @@ void doReadSensors() {
     sendMessage(buffer, 'S');
   }
   Serial.flush();
-  ackResume = millis() + 10 * 1000L;
-  stateMachine.transitionTo(waitAck_s);
 }
 
 // https://gist.github.com/bryanthompson/ef4ecf24ad36410f077b

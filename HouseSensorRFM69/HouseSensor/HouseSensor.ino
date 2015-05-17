@@ -1,8 +1,8 @@
-// House sensor sketch - James J Myers
+// House sensor sketch (RadioHead with nrf24L01) - James J Myers
 //#define DEBUG
 #include <U8glib.h>
-#include <RF24Network.h>
-#include <RF24.h>
+#include <RHDatagram.h>
+#include <RH_NRF24.h>
 #include <SPI.h>
 #include <ArduinoJson.h>
 #include <EEPROM.h>
@@ -10,6 +10,12 @@
 #include "DebugUtils.h"
 #include <Wire.h>
 #include <FiniteStateMachine.h>
+#include <Narcoleptic.h>
+
+#define NETWORKID     100  //the same on all nodes that talk to each other
+#define GATEWAYID     1
+//Match frequency to the hardware version of the radio on your Moteino (uncomment one):
+#define FREQUENCY     RF69_915MHZ
 
 #define SENSOR_NANO 1  // Arduino Nano 5v
 #define SENSOR_UNO 2   // Arduino Uno 5v
@@ -30,33 +36,25 @@
 #if NODE_ID == 01
 #define SENSOR_MODEL SENSOR_MC8
 #define SENSOR_BATTERY SENSOR_POWER_AA
-#define RADIO_PA_LEVEL RF24_PA_HIGH
 #define BATTERY_SENSE_PIN A1
 
 #elif NODE_ID == 02
 #define SENSOR_MODEL SENSOR_MC8
 #define PIR_PIN 5
 #define SENSOR_BATTERY SENSOR_POWER_USB
-#define RADIO_PA_LEVEL RF24_PA_MAX
 #define USE_OLED
-//#define RADIO_USE_IRQ
 //#define BATTERY_SENSE_PIN A1
 
 #elif NODE_ID == 03
 #define SENSOR_MODEL SENSOR_MINI
 #define USE_OLED
 #define PIR_PIN 5
-//#define RADIO_USE_IRQ
 
 #elif NODE_ID == 04
 #define SENSOR_MODEL SENSOR_TRINKET
 #define USE_OLED
 #define SENSOR_BATTERY SENSOR_POWER_USB
 
-#elif NODE_ID == 023
-#define SENSOR_MODEL SENSOR_MC8
-#define USE_OLED
-#define DHT22_PIN 4
 #endif
 
 // radio declarations
@@ -85,7 +83,7 @@ HTU21D myHumidity;
 // Pin 13 has an LED connected on most Arduino boards.
 #define LED 13
 
-const char* version = "0.50";
+const char* version = "0.70";
 
 uint32_t time_offset = 0;   // time in seconds when date/time received
 uint32_t seconds_since_midnight = 0;
@@ -111,9 +109,10 @@ struct MyObject {
   uint16_t interval;
   char name[16];
 };
+RH_NRF24 driver;
+// Class to manage message delivery and receipt, using the driver declared above
+RHDatagram manager(driver, NODE_ID);
 
-RF24 radio(RF_CS, RF_CSN);
-RF24Network network(radio);          // Network uses that radio
 //This is for sleep mode. It is not really required, as users could just use the number 0 through 10
 typedef enum { wdt_16ms = 0, wdt_32ms, wdt_64ms, wdt_128ms, wdt_250ms, wdt_500ms, wdt_1s, wdt_2s, wdt_4s, wdt_8s } wdt_prescalar_e;
 #ifdef DHT22_PIN
@@ -227,17 +226,19 @@ long readVcc() {
 }
 #endif
 
-boolean sendMessage(char *buffer, char msgtype) {
+boolean sendMessage(uint8_t* buffer, char msgtype) {
   // transmit the data
   //Serial.print("\nTransmitting..."); Serial.println(remaining);
   //Serial.flush();
   // RF24 only writes 32 bytes max in each payload, 8 byte header and 24 data
-  int bufsize = strlen(buffer);
+  int bufsize = sizeof(buffer);
   buffer[bufsize] = '\0';  // ensure buffer is terminated properly
-  RF24NetworkHeader header(/*to node*/ base_node, /*type*/ msgtype);
+  bool sendOK;
+  if (sendOK = manager.sendto(buffer, bufsize, base_node))
+     DEBUG_PRINT(" send ok!");
+  else DEBUG_PRINT(" send failed...");
   DEBUG_PRINT_START("Sending packet to "); DEBUG_PRINT(base_node); DEBUG_PRINT(" at "); DEBUG_PRINT(millis());
   DEBUG_PRINT(" "); DEBUG_PRINT(msgtype); DEBUG_PRINT(":"); DEBUG_PRINTLN(bufsize);
-  bool sendOK = network.write(header, buffer, bufsize + 1); // add 1 to include terminator
   if (!sendOK) {
     DEBUG_PRINTLN("Write buffer failed");
     OLED_LOG("Write failed", 1, 0, true, true);
@@ -327,23 +328,21 @@ void doInit() {
   //a random read from an unused and floating analog port
 
   //Initialize the Radio
-  radio.begin();
-  radio.setPALevel(RADIO_PA_LEVEL);
+  if (!manager.init())
+    Serial.println("datagram init failed");
+
 #ifdef SENSOR_BATTERY
   analogReference(INTERNAL);    // use the 1.1 V internal reference for battery level measuring
 #endif
-  network.begin(/*channel*/ 90, /*node address*/ this_node);
-  //radio.printDetails();
-  sprintf(buffer, "Started RF24 PA=%u", radio.getPALevel());
-  OLED_LOG(buffer, 3, 0, true, true);
-  network.setup_watchdog(wdt_8s);  // set up watchdog timer for 8 seconds
+  //sprintf(buffer, "Started RF24 PA=%u", radio.getPALevel());
+  //OLED_LOG(buffer, 3, 0, true, true);
   delay(2000);  // delay to allow DHT22 to stabilize
 #ifdef DHT22_PIN
-  sprintf(buffer, "ID:%d DHT:%d PA:%d", this_node, DHT_PIN, radio.getPALevel());
+  sprintf(buffer, "ID:%d DHT:%d PA:%d", this_node, DHT_PIN, 3);
 #else
-  sprintf(buffer, "ID:%d DHT:i2c PA:%d", this_node, radio.getPALevel());
+  sprintf(buffer, "ID:%d DHT:i2c PA:%d", this_node, 3);
 #endif
-  sendMessage(buffer, 'i');
+  sendMessage((uint8_t*)buffer, 'i');
   Serial.flush();
   DEBUG_BLINK(this_node);
   configStartTime = millis();
@@ -354,7 +353,7 @@ void doConfig() {
   char configMsg[25];
   sprintf(configMsg, "{\"cfg\":1,\"v\":\"%s\"}", version);
   //OLED_LOG(configMsg, 1, 0, true);
-  bool sendOK = sendMessage(configMsg, 'c');
+  bool sendOK = sendMessage((uint8_t*)configMsg, 'c');
   if (sendOK) {
     configure_sent = true;
     configStartTime = millis();
@@ -428,9 +427,6 @@ void loop() {
   //THIS LINE IS CRITICAL
   //do not remove the stateMachine.update() call, it is what makes this program 'tick'
   stateMachine.update();
-
-  //OLED_TOD();
-  //checkNetwork();
 }
 
 void doSleep() {
@@ -441,43 +437,36 @@ void doSleep() {
   OLED_LOG(sleepMsg, 1, 0, true, true);
   OLED_TOD();
   OLED_SLEEP();
-  radio.stopListening();         // Switch to PTX mode. Payloads will be seen as ACK payloads, and the radio will wake up
   byte adcsra = ADCSRA;          //save the ADC Control and Status Register A
   ADCSRA = 0;                    //disable the ADC
-  do {
-#ifdef RADIO_USE_IRQ
-    bool fullTime = network.sleepNode(min(127, sleepCycles), RF_INT);  // Sleep the node for n cycles of 8 second intervals
-#else
-    bool fullTime = network.sleepNode(min(127, sleepCycles), 255);  // Sleep the node for n cycles of 8 second intervals
-#endif
-    if (!fullTime) {
-      sprintf(sleepMsg, "Wake RF IRQ");
-      OLED_LOG(sleepMsg, 1, 0, true, true);
-      break;  // got interrupt so we need to handle it
-    } else {
-      sleepCycles -= 127;
-    }
-  } while (sleepCycles > 0);
+  driver.sleep();
+  Narcoleptic.delay(config_interval); // During this time power consumption is minimised
   ADCSRA = adcsra;               //restore ADCSRA
   stateMachine.transitionTo(readSensors_s);
 }
 
 void checkNetwork() {
-  network.update();                          // Check the network regularly
-
-  // can only receive 24 bytes of data!!!
-  while ( network.available() ) {     // Is there anything ready for us?
-    RF24NetworkHeader header;        // If so, grab it and process it
-    network.peek(header);
+  // can only receive 28 bytes of data!!!
+  uint8_t payload[RH_NRF24_MAX_MESSAGE_LEN];  // we'll receive a packet
+  memset(payload, 0, sizeof(payload));  // clear the buffer
+  while ( manager.available() ) {     // Is there anything ready for us?
+    uint8_t count = sizeof(payload);
+    uint8_t from;   
+    if (manager.recvfrom(payload, &count, &from)) {
+      Serial.print("got reply from : 0x");
+      Serial.print(from, HEX);
+      Serial.print(": ");
+      Serial.println((char*)payload);
+    } else {
+      Serial.println("No reply, is nrf24_datagram_server running?");
+    }
     DEBUG_PRINT_START("header="); DEBUG_PRINTLN((char)header.type);
-    uint8_t payload[25];  // we'll receive a packet
-    memset(payload, 0, sizeof(payload));  // clear the buffer
-    int count = network.read(header, &payload, sizeof(payload) - 1);
     payload[count] = 0;  // terminate buffer
     OLED_LOG((char*)payload, 3, 0, true, true);
     unsigned int interval = 0;
-    switch (header.type) {
-      case 'c': {
+    uint8_t headerFlags = manager.headerFlags() && 0x0f;
+    switch (headerFlags) {
+      case 0x01: {
           // parse config json from manager
           StaticJsonBuffer<64> jsonBuffer;
           JsonObject& root = jsonBuffer.parseObject((char*)payload);
@@ -515,7 +504,7 @@ void checkNetwork() {
           break;
         }
       default:
-        Serial.print('Invalid msg type:'); Serial.println(header.type);
+        Serial.print('Invalid msg type:'); Serial.println(headerFlags);
         break;
     }  //end switch
   }  // end while
@@ -611,7 +600,7 @@ void doReadSensors() {
   else message1["rh"] = h;
   memset(buffer, 0, sizeof(buffer));  // clear buffer to avoid reuse
   message1.printTo(buffer, sizeof(buffer));
-  sendMessage(buffer, 'S');
+  sendMessage((uint8_t*)buffer, 'S');
 #ifdef USE_OLED
   OLED_LOG(temp, 2, 0, false, false);
   OLED_LOG(hum, 2, strlen("00.00 "), false, true);
@@ -642,7 +631,7 @@ void doReadSensors() {
     message3["ack"] = 0;  // do not acknowledge with time
     memset(buffer, 0, sizeof(buffer));  // clear buffer to avoid reuse
     message3.printTo(buffer, sizeof(buffer));
-    sendMessage(buffer, 'S');
+    sendMessage((uint8_t*)buffer, 'S');
   }
   Serial.flush();
   ackResume = millis() + 10 * 1000L;
