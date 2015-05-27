@@ -10,13 +10,14 @@
 #include "DebugUtils.h"
 #include <Wire.h>
 #include <FiniteStateMachine.h>
-#include <Narcoleptic.h>
-
+#include <LowPower.h>
+//#include <VoltageReference.h>
+#if 0
 #define NETWORKID     100  //the same on all nodes that talk to each other
 #define GATEWAYID     1
 //Match frequency to the hardware version of the radio on your Moteino (uncomment one):
 #define FREQUENCY     RF69_915MHZ
-
+#endif
 #define SENSOR_NANO 1  // Arduino Nano 5v
 #define SENSOR_UNO 2   // Arduino Uno 5v
 #define SENSOR_MC8 3   // 8 MHz atmega328 3.3v 
@@ -29,11 +30,12 @@
 #define SENSOR_POWER_LIPO 3
 
 #define RADIO_PA_LEVEL RF24_PA_MAX
+#define SENSOR_BAUD_RATE 57600
 
 //#define NODE_ID 023     // Change this_node for each board you deploy.
-#define NODE_ID 01      // Change this_node for each board you deploy.
+#define NODE_ID 02      // Change this_node for each board you deploy.
 
-#if NODE_ID == 01
+#if NODE_ID == 01//
 #define SENSOR_MODEL SENSOR_MC8
 #define SENSOR_BATTERY SENSOR_POWER_AA
 #define BATTERY_SENSE_PIN A1
@@ -41,9 +43,9 @@
 #elif NODE_ID == 02
 #define SENSOR_MODEL SENSOR_MC8
 #define PIR_PIN 5
-#define SENSOR_BATTERY SENSOR_POWER_USB
+#define SENSOR_BATTERY SENSOR_POWER_LIPO
 #define USE_OLED
-//#define BATTERY_SENSE_PIN A1
+#define BATTERY_SENSE_PIN A1
 
 #elif NODE_ID == 03
 #define SENSOR_MODEL SENSOR_MINI
@@ -54,6 +56,7 @@
 #define SENSOR_MODEL SENSOR_TRINKET
 #define USE_OLED
 #define SENSOR_BATTERY SENSOR_POWER_USB
+#define SENSOR_BAUD_RATE 76600
 
 #endif
 
@@ -62,7 +65,7 @@ const uint16_t this_node = NODE_ID;        // Address of our node in Octal forma
 const uint16_t base_node = 00;       // Address of the other node in Octal format
 uint32_t lastContact = 0;  // seconds since last contact with mother
 uint16_t readings = 0;
-#define RF_CS 9
+#define RF_CE 9
 #define RF_CSN 10
 #define RF_INT 0   // interrupt 0 uses pin 2
 #define RF_IRQ_PIN 2
@@ -74,6 +77,7 @@ uint16_t readings = 0;
 // Connect a 10K resistor from pin 2 (data) to pin 1 (power) of the sensor
 #define DHT_PIN DHT22_PIN
 #include <DHT22.h>
+DHT22 myDHT22(DHT22_PIN);
 #else
 #include <HTU21D.h>
 //Create an instance of the object
@@ -109,22 +113,17 @@ struct MyObject {
   uint16_t interval;
   char name[16];
 };
-RH_NRF24 driver;
+RH_NRF24 driver(RF_CE, RF_CSN);
 // Class to manage message delivery and receipt, using the driver declared above
 RHDatagram manager(driver, NODE_ID);
 
-//This is for sleep mode. It is not really required, as users could just use the number 0 through 10
-typedef enum { wdt_16ms = 0, wdt_32ms, wdt_64ms, wdt_128ms, wdt_250ms, wdt_500ms, wdt_1s, wdt_2s, wdt_4s, wdt_8s } wdt_prescalar_e;
-#ifdef DHT22_PIN
-DHT22 myDHT22(DHT22_PIN);
-#endif
 bool motionDetected = false;
 uint16_t config_interval = 300;
 MyObject sensorConfig; //Variable to store custom object read from EEPROM.
 
 // Finite State Machine declarations
 //how many states are we cycling through?
-const byte NUMBER_OF_SELECTABLE_STATES = 9;
+const byte NUMBER_OF_SELECTABLE_STATES = 7;
 /** this is the definition of the states that our program uses */
 State init_s(doInit);
 State config_s(doConfig);
@@ -188,6 +187,7 @@ void oled_log(const char* s, uint8_t line, uint8_t x, bool clear, bool update) {
 #endif
 
 #ifdef BATTERY_SENSE_PIN
+//VoltageReference vRef = VoltageReference();
 int oldBatteryPcnt = 0;
 /* Internal_ref=1.1V, res=10bit=2^10-1=1023
 2AA: Vin/Vbat=470e3/(1e6+470e3), 3AA: Vin/Vbat=680e3/(2.5e6+680e3), 4AA: Vin/Vbat=1e6/(1e6+5e6), 
@@ -197,13 +197,19 @@ Volts per bit = Vlim/1023 = 0.008982
 */
 #if SENSOR_BATTERY == SENSOR_POWER_AA
 #define VMIN 1.5 // (Min input voltage to regulator according to datasheet or guessing. (?) )
-#define VMAX 3.0 // (Known or desired voltage of full batteries. If not, set to Vlim.)
+#define VMAX 5.0 // (Known or desired voltage of full batteries. If not, set to Vlim.)
 #define VLIM 3.13
 #define VOLTS_PER_BIT VLIM/1023L
 #endif
 #if SENSOR_BATTERY == SENSOR_POWER_COIN
 #define VMIN 1.5 // (Min input voltage to regulator according to datasheet or guessing. (?) )
-#define VMAX 4.0  //  " " " high level. Vmin<Vmax<=4.0
+#define VMAX 5.0  //  " " " high level. Vmin<Vmax<=4.0
+#define VLIM 3.13
+#define VOLTS_PER_BIT VLIM/1023L
+#endif
+#if SENSOR_BATTERY == SENSOR_POWER_LIPO
+#define VMIN 2.5 // (Min input voltage to regulator according to datasheet or guessing. (?) )
+#define VMAX 5.0  //  " " " high level. Vmin<Vmax<=4.0
 #define VLIM 3.13
 #define VOLTS_PER_BIT VLIM/1023L
 #endif
@@ -220,35 +226,63 @@ long readVcc() {
   }  
   return batteryPcnt;
 }
+#if 0
+long ReadVccxx() {
+	int vcc = vRef.readVcc();
+	// vcc is the voltage at Vcc pin
+
+	int v11 = vRef.internalValue();
+	// v11 is the real internal voltage reference value
+
+	int a0 = analogRead(A0);
+
+	// usually to convert a0 to millivolts
+	int oldPinV = a0 / 1024 * 3300; // for a 3.3V board use 3300, 5v 5000
+
+	// more precise result can be obtained with
+	int betterPinV = a0 / 1024 * vcc;
+
+	// when playing with low voltages
+	analogReference(INTERNAL);
+	int a1 = analogRead(A1);
+
+	// usually to convert a1 to millivolts
+	int oldPinLowV = a1 / 1024 * 1100;
+
+	// the most accurate low voltage readings are obtained with
+	int accuratePinLowV = a1 / 1024 * v11;
+	
+	return 0;
+}
+#endif
 #else
 long readVcc() {
   return 0L;
 }
 #endif
 
-boolean sendMessage(uint8_t* buffer, char msgtype) {
+boolean sendMessage(uint8_t* buffer, uint8_t bufsize, uint8_t msgtype) {
   // transmit the data
   //Serial.print("\nTransmitting..."); Serial.println(remaining);
   //Serial.flush();
-  // RF24 only writes 32 bytes max in each payload, 8 byte header and 24 data
-  int bufsize = sizeof(buffer);
+  // RF24 only writes 32 bytes max in each payload, 4 byte header and 28 data
   buffer[bufsize] = '\0';  // ensure buffer is terminated properly
-  bool sendOK;
-  if (sendOK = manager.sendto(buffer, bufsize, base_node))
-     DEBUG_PRINT(" send ok!");
-  else DEBUG_PRINT(" send failed...");
   DEBUG_PRINT_START("Sending packet to "); DEBUG_PRINT(base_node); DEBUG_PRINT(" at "); DEBUG_PRINT(millis());
   DEBUG_PRINT(" "); DEBUG_PRINT(msgtype); DEBUG_PRINT(":"); DEBUG_PRINTLN(bufsize);
-  if (!sendOK) {
+  bool sendOK;
+  manager.setHeaderFlags(msgtype, 0x0f);
+	Serial.print("flags=");Serial.println(msgtype, HEX);
+  if (!(sendOK = manager.sendto(buffer, bufsize, base_node))) {
     DEBUG_PRINTLN("Write buffer failed");
     OLED_LOG("Write failed", 1, 0, true, true);
     // signal error
     DEBUG_BLINK(1);
   } else {
+	manager.waitPacketSent();
     lastContact = millis() / 1000L;
     DEBUG_PRINT_START("sent="); DEBUG_PRINT(buffer); DEBUG_PRINTLN("...");
-    OLED_LOG(" ", 1, 0, true, false);
-    OLED_LOG(buffer, 3, 0, true, true);
+    //OLED_LOG(" ", 1, 0, true, false);
+    OLED_LOG((const char*)buffer, 3, 0, true, true);
   }
   DEBUG_FLUSH();
   return sendOK;
@@ -263,7 +297,7 @@ void doInit() {
 #ifdef DEBUG
   Serial.begin(9600);
 #else
-  Serial.begin(57600);
+  Serial.begin(SENSOR_BAUD_RATE);
 #endif
   //printf_begin();
   DEBUG_PRINT_START("RF24 v"); DEBUG_PRINT(version); DEBUG_PRINTLN(" sensor starting...");
@@ -316,6 +350,7 @@ void doInit() {
   DEBUG_PRINT(" PIR "); DEBUG_PRINT(PIR_PIN);
 #endif
 #ifdef BATTERY_SENSE_PIN
+//	vRef.begin();
   DEBUG_PRINT(" bat "); DEBUG_PRINT(BATTERY_SENSE_PIN);
 #endif
   DEBUG_PRINT(" int "); DEBUG_PRINTLN(config_interval);
@@ -328,22 +363,28 @@ void doInit() {
   //a random read from an unused and floating analog port
 
   //Initialize the Radio
-  if (!manager.init())
-    Serial.println("datagram init failed");
-
+  if (!manager.init()) {
+    DEBUG_PRINTLN("RH init failed");
+    OLED_LOG("RH init failed", 1, 0, true, true);
+  }
+  // Defaults after init are 2.402 GHz (channel 2), 2Mbps, 0dBm
+  if (!driver.setChannel(3))
+    Serial.println("set channel failed");
+  if (!driver.setRF(RH_NRF24::DataRate250kbps, RH_NRF24::TransmitPowerm6dBm))
+    Serial.println("set RF failed");   
 #ifdef SENSOR_BATTERY
   analogReference(INTERNAL);    // use the 1.1 V internal reference for battery level measuring
 #endif
   //sprintf(buffer, "Started RF24 PA=%u", radio.getPALevel());
   //OLED_LOG(buffer, 3, 0, true, true);
-  delay(2000);  // delay to allow DHT22 to stabilize
 #ifdef DHT22_PIN
   sprintf(buffer, "ID:%d DHT:%d PA:%d", this_node, DHT_PIN, 3);
 #else
   sprintf(buffer, "ID:%d DHT:i2c PA:%d", this_node, 3);
 #endif
-  sendMessage((uint8_t*)buffer, 'i');
+  sendMessage((uint8_t*)buffer, strlen(buffer)+1, 0x00);
   Serial.flush();
+  delay(2000);  // delay to allow DHT22/radio to stabilize
   DEBUG_BLINK(this_node);
   configStartTime = millis();
   stateMachine.transitionTo(config_s);
@@ -352,11 +393,12 @@ void doInit() {
 void doConfig() {
   char configMsg[25];
   sprintf(configMsg, "{\"cfg\":1,\"v\":\"%s\"}", version);
-  //OLED_LOG(configMsg, 1, 0, true);
-  bool sendOK = sendMessage((uint8_t*)configMsg, 'c');
-  if (sendOK) {
+  if (sendMessage((uint8_t*)configMsg, strlen(configMsg)+1, 0x01)) {
     configure_sent = true;
     configStartTime = millis();
+    if (configResume > 0) {
+      OLED_LOG("config resend", 1, 0, true, true);
+    }
     configResume = configStartTime + 10000;
     stateMachine.transitionTo(configWait_s);
   } else {
@@ -430,18 +472,17 @@ void loop() {
 }
 
 void doSleep() {
-  // # cycles must be <= 127
-  int sleepCycles = config_interval/8;
   char sleepMsg[21];
   sprintf(sleepMsg, "Sleep %d seconds", config_interval);
   OLED_LOG(sleepMsg, 1, 0, true, true);
   OLED_TOD();
   OLED_SLEEP();
-  byte adcsra = ADCSRA;          //save the ADC Control and Status Register A
-  ADCSRA = 0;                    //disable the ADC
   driver.sleep();
-  Narcoleptic.delay(config_interval); // During this time power consumption is minimised
-  ADCSRA = adcsra;               //restore ADCSRA
+  uint32_t cycles = config_interval/8;
+	do {
+		LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);  
+		cycles -= 1;
+	}  while (cycles > 0);
   stateMachine.transitionTo(readSensors_s);
 }
 
@@ -453,18 +494,18 @@ void checkNetwork() {
     uint8_t count = sizeof(payload);
     uint8_t from;   
     if (manager.recvfrom(payload, &count, &from)) {
-      Serial.print("got reply from : 0x");
-      Serial.print(from, HEX);
-      Serial.print(": ");
-      Serial.println((char*)payload);
+      DEBUG_PRINT("got reply from : 0x");
+      DEBUG_PRINT_HEX(from);
+      DEBUG_PRINT(": ");
+      DEBUG_PRINTLN((char*)payload);
     } else {
-      Serial.println("No reply, is nrf24_datagram_server running?");
+      DEBUG_PRINTLN("No reply, is nrf24_datagram_server running?");
+      OLED_LOG("No reply", 1, 0, true, true);
     }
-    DEBUG_PRINT_START("header="); DEBUG_PRINTLN((char)header.type);
     payload[count] = 0;  // terminate buffer
     OLED_LOG((char*)payload, 3, 0, true, true);
     unsigned int interval = 0;
-    uint8_t headerFlags = manager.headerFlags() && 0x0f;
+    uint8_t headerFlags = manager.headerFlags() & 0x0f;
     switch (headerFlags) {
       case 0x01: {
           // parse config json from manager
@@ -504,6 +545,10 @@ void checkNetwork() {
           break;
         }
       default:
+		OLED_LOG("errflags=", 2, 0, true, false);
+		char charFlags[8];
+		sprintf(charFlags, "%0x", manager.headerFlags());
+		OLED_LOG(charFlags, 2, strlen("errflags="), false, true);
         Serial.print('Invalid msg type:'); Serial.println(headerFlags);
         break;
     }  //end switch
@@ -573,7 +618,7 @@ void doReadSensors() {
   char hum[6];
 
   // check if returns are valid, if they are NaN (not a number) then something went wrong!
-  char buffer[40];
+  char buffer[32];
   if (isnan(t) || isnan(h) || (h == 0.0)) {
     sprintf(buffer, "ID:%d:TS:%lu:ER:ERROR", this_node, millis()); //millis provides a stamp for deduping if signal is repeated
     DEBUG_PRINT_START("Failed to read from DHT: ");
@@ -586,7 +631,7 @@ void doReadSensors() {
   Serial.flush();
 
   // send temperature/humidity message
-  StaticJsonBuffer<50> jsonBuffer1;
+  StaticJsonBuffer<32> jsonBuffer1;
   JsonObject& message1 = jsonBuffer1.createObject();
   if (isnan(f) || (f > 120.0))
     message1["tf"] = -1;
@@ -600,13 +645,13 @@ void doReadSensors() {
   else message1["rh"] = h;
   memset(buffer, 0, sizeof(buffer));  // clear buffer to avoid reuse
   message1.printTo(buffer, sizeof(buffer));
-  sendMessage((uint8_t*)buffer, 'S');
+  sendMessage((uint8_t*)buffer, strlen(buffer)+1, 0x02);
 #ifdef USE_OLED
   OLED_LOG(temp, 2, 0, false, false);
   OLED_LOG(hum, 2, strlen("00.00 "), false, true);
 #endif
   bool sendMessage3 = false;
-  StaticJsonBuffer<50> jsonBuffer3;
+  StaticJsonBuffer<32> jsonBuffer3;
   JsonObject& message3 = jsonBuffer3.createObject();
 #ifdef PIR_PIN
   Serial.print("md="); Serial.print(motionDetected); Serial.print(" pir="); Serial.println(pir);
@@ -631,7 +676,7 @@ void doReadSensors() {
     message3["ack"] = 0;  // do not acknowledge with time
     memset(buffer, 0, sizeof(buffer));  // clear buffer to avoid reuse
     message3.printTo(buffer, sizeof(buffer));
-    sendMessage((uint8_t*)buffer, 'S');
+    sendMessage((uint8_t*)buffer, strlen(buffer)+1, 0x02);
   }
   Serial.flush();
   ackResume = millis() + 10 * 1000L;

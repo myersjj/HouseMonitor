@@ -34,13 +34,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    Serial.print(' ');      \
    Serial.println(str);
 #define DEBUG_PRINT(str)    \
-   Serial.print(str);
+   Serial.print((const char*)str);
+#define DEBUG_PRINT_HEX(str) \
+    Serial.print(str, HEX);
 #define DEBUG_PRINTLN(str)    \
-   Serial.println(str);
+   Serial.println((const char*)str);
 #define DEBUG_FLUSH()   \
     Serial.flush();
 #else
 #define DEBUG_PRINT(str)
+#define DEBUG_PRINT_HEX(str)
 #define DEBUG_PRINT_START(str)
 #define DEBUG_PRINTLN(str)
 #define DEBUG_FLUSH(str)

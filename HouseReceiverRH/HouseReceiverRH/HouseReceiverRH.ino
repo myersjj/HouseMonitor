@@ -2,24 +2,34 @@
 #include <SeeedGrayOLED.h>
 #include <avr/pgmspace.h>
 #include <SoftwareSerial.h>
-#include <RF24Network.h>
-#include <RF24.h>
+#include <RHDatagram.h>
+#include <RH_NRF24.h>
 #include <SPI.h>
 #include <ArduinoJson.h>
 //#include <Time.h>  
 #include "printf.h"
+#define LED 13
 
-#define LED 4
-#define RF_CS 9
-#define RF_CSN 10
+// radio declarations
+#define RF_CE 9    // chip enable
+#define RF_CSN 10  // spi chip select
+#define RF_INT 0   // interrupt 0 uses pin 2
+#define RF_IRQ_PIN 2
 
-RF24 radio(RF_CS, RF_CSN);
-RF24Network network(radio);          // Network uses that radio
-const uint16_t this_node = 00;        // Address of our node in Octal format
-const uint16_t other_node = 01;       // Address of the other node in Octal format
+#if 0
+#define NETWORKID     100  //the same on all nodes that talk to each other
+#define GATEWAYID     1
+//Match frequency to the hardware version of the radio on your Moteino (uncomment one):
+#define FREQUENCY     RF69_915MHZ
+#endif
+
+const uint16_t this_node = 0;        // Address of our node 
+RH_NRF24 driver(RF_CE, RF_CSN);
+// Class to manage message delivery and receipt, using the driver declared above
+RHDatagram manager(driver, this_node);
 
 char message[128] = { 0 };
-const char* version = "0.40";
+const char* version = "0.70";
 uint8_t currentLine = 4;  // for OLED roll
 #define OLED_ROWS 12
 #define OLED_LINE_LENGTH 12
@@ -64,21 +74,14 @@ void setup()
   // define pin modes for tx, rx:
   pinMode(rxPin, INPUT);
   pinMode(txPin, OUTPUT);
+  pinMode(LED, OUTPUT);
   mySerial.begin(19200);  //Start the Serial at 19200 baud: software serial can't do more :(
   printf_begin();
   mySerial.flush();
-  mySerial.print("RF24 v"); mySerial.print(version); mySerial.println(" receiver starting...");
-  pinMode(LED, OUTPUT);
+  //mySerial.print("RF24 v"); mySerial.print(version); mySerial.println(" receiver starting...");
   blink(1);
   //randomSeed (analogRead(A0));  //initialize the random number generator with
   //a random read from an unused and floating analog port
-  radio.begin();
-  //radio.setDataRate(RF24_250KBPS);
-  //radio.setPALevel(RF24_PA_MAX);
-  //radio.printDetails();
-  network.begin(/*channel*/ 90, /*node address*/ this_node);
-  // send startup message to Pi to get configuration
-  mySerial.println("[startup]");
   // setup OLED
   Wire.begin();
   SeeedGrayOled.init();
@@ -100,6 +103,18 @@ void setup()
     sensors[i].bs = 0L;
     sensors[i].interval = 300;  // default is 300 seconds
   }
+  //Initialize the Radio
+  if (!manager.init()) {
+    oledPutLine(3, 0, "Datagram error", true);
+    mySerial.println("datagram init failed");
+  }
+  // Defaults after init are 2.402 GHz (channel 2), 2Mbps, 0dBm
+  if (!driver.setChannel(3))
+    Serial.println("set channel failed");
+  if (!driver.setRF(RH_NRF24::DataRate250kbps, RH_NRF24::TransmitPowerm6dBm))
+    Serial.println("set RF failed");   
+  // send startup message to Pi to get configuration
+  mySerial.println("[startup]");
 }
 
 void oledClearLine(int line) {
@@ -111,7 +126,10 @@ void oledClearLine(int line) {
 void oledPutLine(int line, int column, char* msg, bool clear) {
   if (clear) oledClearLine(line);
   SeeedGrayOled.setTextXY(line, column);
-  SeeedGrayOled.putString(msg);
+  char l1[OLED_LINE_LENGTH+1];
+  memcpy(l1, msg, 12);
+  l1[12] = '\0';
+  SeeedGrayOled.putString(l1);
 }
 
 void processConfig(char* msg) {
@@ -133,7 +151,6 @@ void processConfig(char* msg) {
       return;
     } else {
       uint8_t sid = root["id"];
-      sid = sid - 1;
       if (root.containsKey("id")) {
         sensors[sid].interval = root["id"];
         if (root.containsKey("t")) {
@@ -151,12 +168,19 @@ void processConfig(char* msg) {
         return;
       }
       // pass config json on to the targeted sensor
-      RF24NetworkHeader header(/*to node*/ sid + 1, /*type*/ 'c');
-      bool sendOK = network.write(header, json, strlen(json) + 1);
-      if (!sendOK) {
-        mySerial.print("Write to "); mySerial.print(sid + 1); mySerial.print(" failed: "); mySerial.println(json);
+      bool sendOK;
+      oledPutLine(2, 0, json, true);
+      char l1[32];
+	  manager.setHeaderFlags(0x01, 0x0f);
+      if (!(sendOK = manager.sendto((uint8_t*)json, strlen(json), sid))) {
+        mySerial.print("Write to "); mySerial.print(sid); mySerial.print(" failed: "); mySerial.println(json);
+        sprintf(l1, "E%d:%d", sid, strlen(json));
+        oledPutLine(3, 0, l1, false);
       } else {
-        mySerial.print("Sent to "); mySerial.print(sid + 1); mySerial.print(":"); mySerial.println(json);
+		manager.waitPacketSent();
+        mySerial.print("Sent to "); mySerial.print(sid); mySerial.print(":"); mySerial.println(json);
+        sprintf(l1, "T%d:%d", sid, strlen(json));
+        oledPutLine(3, 0, l1, false);
       }
       mySerial.flush();
     }
@@ -260,36 +284,39 @@ void loop() {
     stringComplete = false;
   }
 
-  network.update();                  // Check the network regularly
   lastRead = millis();
-  // can only receive 24 bytes of data!!!
-  while ( network.available() ) {     // Is there anything ready for us?
+  // can only receive 28 bytes of data!!!
+  uint8_t payload[RH_NRF24_MAX_MESSAGE_LEN];  // we'll receive a packet
+  memset(payload, 0, sizeof(payload));  // clear the buffer
+  char oline[2 * OLED_LINE_LENGTH + 1];
+  while ( manager.available() ) {     // Is there anything ready for us?
     StaticJsonBuffer<64> jsonBuffer;
-    RF24NetworkHeader header;        // If so, grab it and print it out
-
-    network.peek(header);
-    uint8_t payload[25];  // we'll receive a packet
-    memset(payload, 0, sizeof(payload));  // clear the buffer
-    int count = network.read(header, &payload, sizeof(payload));
+    uint8_t count = sizeof(payload);
+    uint8_t from;   
+    if (!manager.recvfrom(payload, &count, &from)) {
+      mySerial.println("No msg received");
+      sprintf(oline, "No msg %d", from);
+      oledPutLine(2, 0, oline, true);
+      continue;
+    }
     payload[count] = 0;  // terminate buffer
-    char oline[2 * OLED_LINE_LENGTH + 1];
-    sprintf(oline, "%d->%d %c %d", header.from_node, header.to_node, header.type ? header.type : '-', strlen((const char*)&payload));
-    oledPutLine(3, 0, oline, true);
-    if (header.from_node == 0) {
+    uint8_t headerFlags = manager.headerFlags() & 0x0f;
+    sprintf(oline, "%d:%0x %d", from, headerFlags, strlen((const char*)&payload));
+    oledPutLine(3, 6, oline, false);
+    if (from == 0) {
       delay(5000);
       continue;
     }
     mySerial.print("Received "); mySerial.print(count);
-    mySerial.print(" from "); mySerial.print(header.from_node);
-    mySerial.print("->"); mySerial.print(header.to_node);
-    mySerial.print(" id "); mySerial.print(header.id);
-    mySerial.print(" type "); mySerial.print((char)header.type);
+    mySerial.print(" from "); mySerial.print(from);
+    mySerial.print(" flags "); mySerial.print(manager.headerFlags());
+	mySerial.print(":"); mySerial.print(headerFlags);
     mySerial.print(" len="); mySerial.println(strlen((const char*)&payload));
     if (strlen((const char*)&payload) == 0) continue;
     // insert sensor id into json message
     if ( payload[0] == '{') {
       char payloadWithId[32];
-      sprintf(payloadWithId, "{\"id\":%d,%s", header.from_node, &payload[1]);
+      sprintf(payloadWithId, "{\"id\":%d,%s", from, &payload[1]);
       mySerial.println((const char*)&payloadWithId);  // sends json data to the pi for handling
       // parse json from sensor
       JsonObject& root = jsonBuffer.parseObject((char*)payload);
@@ -297,15 +324,15 @@ void loop() {
         mySerial.print("parseObject() sensor failed:"); mySerial.println((const char*)payload);
         continue;
       }
-      int sid = header.from_node;
+      int sid = from;
       sid = sid - 1;
-      if (header.type == 'c') {
+      if (headerFlags == 0x01) {
         if (root.containsKey("v")) {
           const char* v = root["v"];
           strncpy ( sensors[sid].version, v, sizeof(sensors[sid].version) );
         }
       }
-      if (header.type == 'S') {
+      if (headerFlags == 0x02) {
         sensors[sid].lastRead = lastRead;
         bool pir = false;
         if (root.containsKey("rh")) {
