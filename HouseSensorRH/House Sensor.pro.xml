@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<project pname='New Project' version="5.2">
+  <fsm fname='fsm_1' resetstate='1' numberofinputs='0' numberofoutputs='0'>
+    <ToolsParameters>
+    </ToolsParameters>
+    <globals>
+        <name>clk</name>
+        <name>res_n</name>
+    </globals>
+    <inputnames>
+    </inputnames>
+    <outputnames>
+    </outputnames>
+    <state id='1' posx='-326' posy='-264' color='4294901760' >
+        <sname><![CDATA[Init]]></sname>
+        <output></output>
+    </state>
+    <state id='2' posx='-190' posy='-261' color='4294901760' >
+        <sname><![CDATA[Configure]]></sname>
+        <output></output>
+    </state>
+    <state id='3' posx='-46' posy='-268' color='4294901760' >
+        <sname><![CDATA[Config wait]]></sname>
+        <output></output>
+    </state>
+    <trans id='4' color='0' textposx='-326' textposy='-264'>
+        <name><![CDATA[trans_1]]></name>
+        <default>0</default>
+        <start>1</start>
+        <end>2</end>
+        <trackpoint posx='-182' posy='-266' link='0' linkid='0' join='0' color='0' />
+    </trans>
+    <trans id='5' color='0' textposx='-118' textposy='-264.5'>
+        <name><![CDATA[trans_2]]></name>
+        <default>0</default>
+        <start>2</start>
+        <end>3</end>
+    </trans>
+  </fsm>
+</project>

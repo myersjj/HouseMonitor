@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Atmel Studio Solution File, Format Version 11.00
+Project("{E66E83B9-2572-4076-B26E-6BE79FF3018A}") = "HouseSensorRH", "HouseSensorRH.cppproj", "{EBBBF3EE-1224-434D-AF3D-2533E48E1299}"
+EndProject
+Project("{E66E83B9-2572-4076-B26E-6BE79FF3018A}") = "ISP_loader", "..\..\..\Documents\Arduino\ISP_loader\ISP_loader.cppproj", "{07B459B4-8D76-4638-BC6D-A459BA2D616B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EBBBF3EE-1224-434D-AF3D-2533E48E1299}.Debug|AVR.ActiveCfg = Debug|AVR
+		{EBBBF3EE-1224-434D-AF3D-2533E48E1299}.Debug|AVR.Build.0 = Debug|AVR
+		{EBBBF3EE-1224-434D-AF3D-2533E48E1299}.Release|AVR.ActiveCfg = Release|AVR
+		{EBBBF3EE-1224-434D-AF3D-2533E48E1299}.Release|AVR.Build.0 = Release|AVR
+		{07B459B4-8D76-4638-BC6D-A459BA2D616B}.Debug|AVR.ActiveCfg = Debug|AVR
+		{07B459B4-8D76-4638-BC6D-A459BA2D616B}.Debug|AVR.Build.0 = Debug|AVR
+		{07B459B4-8D76-4638-BC6D-A459BA2D616B}.Release|AVR.ActiveCfg = Release|AVR
+		{07B459B4-8D76-4638-BC6D-A459BA2D616B}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

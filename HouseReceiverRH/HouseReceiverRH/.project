@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>HouseSensor</name>
+	<name>HouseReceiver</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -32,16 +32,6 @@
 			<locationURI>ArduinoPivateLibPath/ArduinoJson</locationURI>
 		</link>
 		<link>
-			<name>Libraries/DHT-sensor-library</name>
-			<type>2</type>
-			<locationURI>ArduinoPivateLibPath/DHT-sensor-library</locationURI>
-		</link>
-		<link>
-			<name>Libraries/LowPower</name>
-			<type>2</type>
-			<locationURI>ArduinoPivateLibPath/LowPower</locationURI>
-		</link>
-		<link>
 			<name>Libraries/RF24</name>
 			<type>2</type>
 			<locationURI>ArduinoPivateLibPath/RF24</locationURI>
@@ -57,28 +47,28 @@
 			<locationURI>ArduinoHardwareLibPath/SPI</locationURI>
 		</link>
 		<link>
-			<name>Libraries/jeelib</name>
-			<type>2</type>
-			<locationURI>ArduinoPivateLibPath/jeelib</locationURI>
-		</link>
-		<link>
 			<name>arduino/core</name>
 			<type>2</type>
-			<locationURI>ArduinoPlatformPath/cores</locationURI>
+			<locationURI>ArduinoPlatformPath/cores/arduino</locationURI>
+		</link>
+		<link>
+			<name>arduino/variant</name>
+			<type>2</type>
+			<locationURI>ArduinoPinPath/standard</locationURI>
 		</link>
 	</linkedResources>
 	<variableList>
 		<variable>
 			<name>ArduinoHardwareLibPath</name>
-			<value>file:/C:/Program%20Files%20(x86)/Arduino/hardware/arduino/avr/libraries</value>
+			<value>file:/C:/myersware/Arduino/hardware/arduino/avr/libraries</value>
 		</variable>
 		<variable>
 			<name>ArduinoPinPath</name>
-			<value>file:/C:/Program%20Files%20(x86)/Arduino/hardware/arduino/avr/variants</value>
+			<value>file:/C:/myersware/Arduino/hardware/arduino/avr/variants</value>
 		</variable>
 		<variable>
 			<name>ArduinoPlatformPath</name>
-			<value>file:/C:/Program%20Files%20(x86)/Arduino/hardware/arduino/avr</value>
+			<value>file:/C:/myersware/Arduino/hardware/arduino/avr</value>
 		</variable>
 	</variableList>
 </projectDescription>

@@ -1,0 +1,649 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>6.2</ProjectVersion>
+    <ToolchainName>com.Atmel.AVRGCC8.CPP</ToolchainName>
+    <ProjectGuid>{ebbbf3ee-1224-434d-af3d-2533e48e1299}</ProjectGuid>
+    <avrdevice>atmega328p</avrdevice>
+    <avrdeviceseries>none</avrdeviceseries>
+    <OutputType>Executable</OutputType>
+    <Language>CPP</Language>
+    <OutputFileName>$(MSBuildProjectName)</OutputFileName>
+    <OutputFileExtension>.elf</OutputFileExtension>
+    <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
+    <AssemblyName>HouseSensorRH</AssemblyName>
+    <Name>HouseSensorRH</Name>
+    <RootNamespace>HouseSensorRH</RootNamespace>
+    <ToolchainFlavour>Native</ToolchainFlavour>
+    <KeepTimersRunning>true</KeepTimersRunning>
+    <OverrideVtor>false</OverrideVtor>
+    <OverrideVtorValue>exception_table</OverrideVtorValue>
+    <eraseonlaunchrule>0</eraseonlaunchrule>
+    <ProgFlashFromRam>true</ProgFlashFromRam>
+    <RamSnippetAddress>0x20000000</RamSnippetAddress>
+    <CacheFlash>true</CacheFlash>
+    <UncachedRange />
+    <BootSegment>0</BootSegment>
+    <AsfFrameworkConfig>
+      <framework-data>
+        <options />
+        <configurations />
+        <files />
+        <documentation help="" />
+        <offline-documentation help="" />
+        <dependencies>
+          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.10.1" />
+        </dependencies>
+      </framework-data>
+    </AsfFrameworkConfig>
+    <preserveEEPROM>true</preserveEEPROM>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <ToolchainSettings>
+      <AvrGccCpp>
+  <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
+  <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
+  <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
+  <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+  <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
+  <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
+  <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+  <avrgcc.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>__AVR_ATmega328p__</Value>
+      <Value>__AVR_ATmega328P__</Value>
+      <Value>ARDUINO=164</Value>
+      <Value>ARDUINO_MAIN</Value>
+      <Value>F_CPU=8000000L</Value>
+      <Value>__AVR__</Value>
+      <Value>ARDUINO_ATMEGA328P</Value>
+      <Value>ARDUINO_ARCH_AVR</Value>
+    </ListValues>
+  </avrgcc.compiler.symbols.DefSymbols>
+  <avrgcc.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>C:/Program Files (x86)/Arduino/hardware/tools/avr/lib/gcc/avr/4.8.1/include</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/tools/avr//avr/include/avr/</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include/</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries</Value>
+      <Value>C:/Program Files (x86)/Visual Micro/Visual Micro for Arduino/Micro Platforms/default/debuggers</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries</Value>
+      <Value>C:/Program Files (x86)/Arduino/libraries</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/Wire/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/Wire</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/U8glib/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/U8glib</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/SPI/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/SPI</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/RF24-master/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/RF24-master</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/RadioHead/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/RadioHead</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/LowPower/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/LowPower</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/HTU21D_Humidity/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/HTU21D_Humidity</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/FSM/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/FSM</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/EEPROM/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/EEPROM</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/ArduinoJson-master/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/ArduinoJson-master</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/Arduino-DHT22-master/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/Arduino-DHT22-master</Value>
+      <Value>../../HouseSensorRH</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/variants/standard</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/cores/arduino</Value>
+    </ListValues>
+  </avrgcc.compiler.directories.IncludePaths>
+  <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
+  <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
+  <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
+  <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+  <avrgcccpp.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcccpp.compiler.general.ChangeDefaultCharTypeUnsigned>
+  <avrgcccpp.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcccpp.compiler.general.ChangeDefaultBitFieldUnsigned>
+  <avrgcccpp.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>__AVR_ATmega328p__</Value>
+      <Value>__AVR_ATmega328P__</Value>
+      <Value>ARDUINO=164</Value>
+      <Value>ARDUINO_MAIN</Value>
+      <Value>F_CPU=8000000L</Value>
+      <Value>__AVR__</Value>
+      <Value>ARDUINO_ATMEGA328P</Value>
+      <Value>ARDUINO_ARCH_AVR</Value>
+    </ListValues>
+  </avrgcccpp.compiler.symbols.DefSymbols>
+  <avrgcccpp.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>C:/Program Files (x86)/Arduino/hardware/tools/avr/lib/gcc/avr/4.8.1/include</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/tools/avr//avr/include/avr/</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include/</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries</Value>
+      <Value>C:/Program Files (x86)/Visual Micro/Visual Micro for Arduino/Micro Platforms/default/debuggers</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries</Value>
+      <Value>C:/Program Files (x86)/Arduino/libraries</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/Wire/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/Wire</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/U8glib/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/U8glib</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/SPI/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/SPI</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/RF24-master/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/RF24-master</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/RadioHead/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/RadioHead</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/LowPower/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/LowPower</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/HTU21D_Humidity/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/HTU21D_Humidity</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/FSM/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/FSM</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/EEPROM/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/EEPROM</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/ArduinoJson-master/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/ArduinoJson-master</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/Arduino-DHT22-master/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/Arduino-DHT22-master</Value>
+      <Value>../../HouseSensorRH</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/variants/standard</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/cores/arduino</Value>
+    </ListValues>
+  </avrgcccpp.compiler.directories.IncludePaths>
+  <avrgcccpp.compiler.optimization.level>Optimize (-O1)</avrgcccpp.compiler.optimization.level>
+  <avrgcccpp.compiler.optimization.PackStructureMembers>True</avrgcccpp.compiler.optimization.PackStructureMembers>
+  <avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcccpp.compiler.optimization.DebugLevel>Default (-g2)</avrgcccpp.compiler.optimization.DebugLevel>
+  <avrgcccpp.compiler.warnings.AllWarnings>True</avrgcccpp.compiler.warnings.AllWarnings>
+  <avrgcccpp.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcccpp.assembler.debugging.DebugLevel>
+</AvrGccCpp>
+    </ToolchainSettings>
+    <VMSETTING_IncludePaths>C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino;C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard;../../HouseSensorRH;C:/Users/myersjj/Documents/Arduino/libraries/Arduino-DHT22-master;C:/Users/myersjj/Documents/Arduino/libraries/Arduino-DHT22-master/utility;C:/Users/myersjj/Documents/Arduino/libraries/ArduinoJson-master;C:/Users/myersjj/Documents/Arduino/libraries/ArduinoJson-master/utility;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/EEPROM;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/EEPROM/utility;C:/Users/myersjj/Documents/Arduino/libraries/FSM;C:/Users/myersjj/Documents/Arduino/libraries/FSM/utility;C:/Users/myersjj/Documents/Arduino/libraries/HTU21D_Humidity;C:/Users/myersjj/Documents/Arduino/libraries/HTU21D_Humidity/utility;C:/Users/myersjj/Documents/Arduino/libraries/Narcoleptic;C:/Users/myersjj/Documents/Arduino/libraries/Narcoleptic/utility;C:/Users/myersjj/Documents/Arduino/libraries/RadioHead;C:/Users/myersjj/Documents/Arduino/libraries/RadioHead/utility;C:/Users/myersjj/Documents/Arduino/libraries/RF24-master;C:/Users/myersjj/Documents/Arduino/libraries/RF24-master/utility;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/utility;C:/Users/myersjj/Documents/Arduino/libraries/U8glib;C:/Users/myersjj/Documents/Arduino/libraries/U8glib/utility;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/utility;C:/Program Files (x86)/Arduino/libraries;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries;C:/Program Files (x86)/Visual Micro/Visual Micro for Arduino/Micro Platforms/default/debuggers;C:/Users/myersjj/Documents/Arduino/libraries;C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include/;C:/Program Files (x86)/Arduino/hardware/tools/avr//avr/include/avr/;C:/Program Files (x86)/Arduino/hardware/tools/avr/lib/gcc/avr/4.8.1/include;C:/Users/myersjj/Documents/Arduino/libraries/LowPower;C:/Users/myersjj/Documents/Arduino/libraries/LowPower/utility;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/cores/arduino;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/variants/standard;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/EEPROM;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/EEPROM/utility;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/SPI;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/SPI/utility;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/Wire;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/Wire/utility;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries;C:/Users/myersjj/Documents/Arduino/libraries/VoltageReference-master;C:/Users/myersjj/Documents/Arduino/libraries/VoltageReference-master/utility;</VMSETTING_IncludePaths>
+    <VisualMicroSettings>
+      <VisualMicroSettings>
+        <arduino.board.name>atmega328</arduino.board.name>
+        <arduino.board.desc>ATmega328 (Internal 8MHz Clock ArduinoISP)</arduino.board.desc>
+        <arduino.board.property_bag>name=ATmega328 (Internal 8MHz Clock ArduinoISP)
+upload.tool=avrdude
+upload.protocol=arduino
+upload.maximum_size=30720
+upload.speed=57600
+bootloader.tool=avrdude
+bootloader.low_fuses=0xE2
+bootloader.high_fuses=0xDA
+bootloader.extended_fuses=0x05
+bootloader.path=atmega
+bootloader.file=ATmegaBOOT_168_atmega328_pro_8MHz.hex
+bootloader.unlock_bits=0x3F
+bootloader.lock_bits=0x0F
+build.mcu=atmega328p
+build.f_cpu=8000000L
+build.board=ATMEGA328P
+build.core=arduino
+build.variant=standard
+runtime.ide.path=C:\Program Files (x86)\Arduino
+build.system.path=C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\system
+runtime.ide.version=164
+target_package=Breadboard
+target_platform=avr
+runtime.hardware.path=C:\Users\myersjj\Documents\Arduino\hardware\Breadboard
+originalid=atmega328
+intellisense.tools.path={runtime.tools.avr-gcc.path}/
+intellisense.include.paths={intellisense.tools.path}avr/include/;{intellisense.tools.path}/avr/include/avr/;{intellisense.tools.path}lib\gcc\avr\4.8.1\include
+tools.atprogram.cmd.path=%AVRSTUDIO_EXE_PATH%\atbackend\atprogram
+tools.atprogram.cmd.setwinpath=true
+tools.atprogram.program.params.verbose=-v
+tools.atprogram.program.params.quiet=-q
+tools.atprogram.program.pattern="{cmd.path}" -d {build.mcu} {program.verbose} {program.extra_params} program -c -f "{build.path}\{build.project_name}.hex"
+tools.atprogram.program.xpattern="{cmd.path}" {AVRSTUDIO_BACKEND_CONNECTION} -d {build.mcu} {program.verbose} {program.extra_params} program -c -f "{build.path}\{build.project_name}.hex"
+version=1.6.0
+compiler.path={runtime.tools.avr-gcc.path}/bin/
+compiler.c.cmd=avr-gcc
+compiler.c.flags=-c -g -Os -w -ffunction-sections -fdata-sections -MMD
+compiler.c.elf.flags=-w -Os -Wl,--gc-sections
+compiler.c.elf.cmd=avr-gcc
+compiler.S.flags=-c -g -x assembler-with-cpp
+compiler.cpp.cmd=avr-g++
+compiler.cpp.flags=-c -g -Os -w -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -MMD
+compiler.ar.cmd=avr-ar
+compiler.ar.flags=rcs
+compiler.objcopy.cmd=avr-objcopy
+compiler.objcopy.eep.flags=-O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0
+compiler.elf2hex.flags=-O ihex -R .eeprom
+compiler.elf2hex.cmd=avr-objcopy
+compiler.ldflags=
+compiler.size.cmd=avr-size
+build.extra_flags=
+compiler.c.extra_flags=
+compiler.c.elf.extra_flags=
+compiler.S.extra_flags=
+compiler.cpp.extra_flags=
+compiler.ar.extra_flags=
+compiler.objcopy.eep.extra_flags=
+compiler.elf2hex.extra_flags=
+recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.c.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.S.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.S.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.S.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compiler.ar.extra_flags} "{build.path}/{archive_file}" "{object_file}"
+recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} -mmcu={build.mcu} {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.elf" {object_files} "{build.path}/{archive_file}" "-L{build.path}" -lm
+recipe.objcopy.eep.pattern="{compiler.path}{compiler.objcopy.cmd}" {compiler.objcopy.eep.flags} {compiler.objcopy.eep.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.eep"
+recipe.objcopy.hex.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf2hex.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.hex"
+recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -A "{build.path}/{build.project_name}.elf"
+recipe.size.regex=^(?:\.text|\.data|\.bootloader)\s+([0-9]+).*
+recipe.size.regex.data=^(?:\.data|\.bss|\.noinit)\s+([0-9]+).*
+recipe.size.regex.eeprom=^(?:\.eeprom)\s+([0-9]+).*
+tools.avrdude.cmd.path={path}/bin/avrdude
+tools.avrdude.config.path={path}/etc/avrdude.conf
+tools.avrdude.upload.params.verbose=-v
+tools.avrdude.upload.params.quiet=-q -q
+tools.avrdude.upload.pattern="{cmd.path}" "-C{config.path}" {upload.verbose} -p{build.mcu} -c{upload.protocol} -P{serial.port} -b{upload.speed} -D "-Uflash:w:{build.path}/{build.project_name}.hex:i"
+tools.avrdude.program.params.verbose=-v
+tools.avrdude.program.params.quiet=-q -q
+tools.avrdude.program.pattern="{cmd.path}" "-C{config.path}" {program.verbose} -p{build.mcu} -c{protocol} {program.extra_params} "-Uflash:w:{build.path}/{build.project_name}.hex:i"
+tools.avrdude.erase.params.verbose=-v
+tools.avrdude.erase.params.quiet=-q -q
+tools.avrdude.erase.pattern="{cmd.path}" "-C{config.path}" {erase.verbose} -p{build.mcu} -c{protocol} {program.extra_params} -e -Ulock:w:{bootloader.unlock_bits}:m -Uefuse:w:{bootloader.extended_fuses}:m -Uhfuse:w:{bootloader.high_fuses}:m -Ulfuse:w:{bootloader.low_fuses}:m
+tools.avrdude.bootloader.params.verbose=-v
+tools.avrdude.bootloader.params.quiet=-q -q
+tools.avrdude.bootloader.pattern="{cmd.path}" "-C{config.path}" {bootloader.verbose} -p{build.mcu} -c{protocol} {program.extra_params} "-Uflash:w:{runtime.platform.path}/bootloaders/{bootloader.file}:i" -Ulock:w:{bootloader.lock_bits}:m
+build.usb_manufacturer=
+build.usb_flags=-DUSB_VID={build.vid} -DUSB_PID={build.pid} '-DUSB_MANUFACTURER={build.usb_manufacturer}' '-DUSB_PRODUCT={build.usb_product}'
+compiler.warning_flags=-w
+compiler.warning_flags.none=-w
+compiler.warning_flags.default=
+compiler.warning_flags.more=-Wall
+compiler.warning_flags.all=-Wall -Wextra
+tools.avrdude.path={runtime.tools.avrdude.path}
+vm.platform.root.path=C:\Program Files (x86)\Visual Micro\Visual Micro for Arduino\Micro Platforms\arduino16x
+runtime.tools.avrdude.path=C:\Program Files (x86)\Arduino\hardware\tools\avr
+runtime.tools.avrdude-6.0.1-arduino5.path=C:\Program Files (x86)\Arduino\hardware\tools\avr
+runtime.tools.avr-gcc.path=C:\Program Files (x86)\Arduino\hardware\tools\avr
+runtime.tools.avr-gcc-4.8.1-arduino5.path=C:\Program Files (x86)\Arduino\hardware\tools\avr
+ide.hint=Arduino 1.6.x ide with support for downloaded Board Manager custom tools and hardware
+ide.location.key=Arduino16x
+ide.location.ide.winreg=Arduino 1.6.x Application
+ide.location.sketchbook.winreg=Arduino 1.6.x Sketchbook
+ide.location.sketchbook.preferences=sketchbook.path
+ide.default.version=160
+ide.default.package=arduino
+ide.default.platform=avr
+ide.multiplatform=true
+ide.includes=arduino.h
+ide.platformswithoutpackage=false
+ide.includes.fallback=wprogram.h
+ide.extension=ino
+ide.extension.fallback=pde
+ide.versionGTEQ=160
+ide.exe=arduino.exe
+ide.hosts=atmel
+ide.url=http://arduino.cc/en/Main/Software
+ide.help.reference.path=reference\arduino.cc\en\Reference
+vm.debug=true
+software=ARDUINO
+ssh.user.name=root
+ssh.user.default.password=arduino
+ssh.host.wwwfiles.path=/www/sd
+build.working_directory={runtime.ide.path}
+ide.location.preferences=%VM_APPDATA_ROAMING%\arduino15\preferences.txt
+ide.location.preferences_fallback=%VM_APPDATA_ROAMING%\arduino\preferences.txt
+ide.location.contributions=%VM_APPDATA_ROAMING%\arduino15
+ide.contributions.boards.allow=true
+ide.contributions.boards.ignore_unless_rewrite_found=true
+ide.contributions.libraries.allow=true
+ide.contributions.boards.support.urls.wiki=https://github.com/arduino/Arduino/wiki/Unofficial-list-of-3rd-party-boards-support-urls
+ide.appid=arduino16x
+location.sketchbook=C:\Users\myersjj\Documents\Arduino
+vm.core.include=arduino.h
+vm.boardsource.path=C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr
+runtime.platform.path=C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr
+vm.platformname.name=avr
+build.arch=AVR
+build.architecture=avr
+vmresolved.compiler.path=C:\Program Files (x86)\Arduino\hardware\tools\avr\bin\
+vmresolved.tools.path=C:\Program Files (x86)\Arduino\hardware\tools\avr
+vm.runtime.compiler.showwarnings=false
+serial.port.file=COM4
+serial.port=COM4
+serial.port.num=4
+build.source.path=C:\Users\myersjj\myersware\HouseMonitor\HouseSensorRH\HouseSensorRH.ino
+extra.time.local=3674124
+includes= -I"C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\cores\arduino"  -I"C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\variants\standard"  -I"C:\Users\myersjj\Documents\Arduino\libraries\Arduino-DHT22-master"  -I"C:\Users\myersjj\Documents\Arduino\libraries\ArduinoJson-master"  -I"C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\libraries\EEPROM"  -I"C:\Users\myersjj\Documents\Arduino\libraries\FSM"  -I"C:\Users\myersjj\Documents\Arduino\libraries\HTU21D_Humidity"  -I"C:\Users\myersjj\Documents\Arduino\libraries\LowPower"  -I"C:\Users\myersjj\Documents\Arduino\libraries\RadioHead"  -I"C:\Users\myersjj\Documents\Arduino\libraries\RF24-master"  -I"C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\libraries\SPI"  -I"C:\Users\myersjj\Documents\Arduino\libraries\U8glib"  -I"C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\libraries\Wire"  -I"C:\Program Files (x86)\Arduino\libraries"  -I"C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries"  -I"C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\libraries"  -I"C:\Program Files (x86)\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers"  -I"C:\Users\myersjj\Documents\Arduino\libraries"  -I"C:\Users\myersjj\Documents\Arduino\libraries\U8glib\utility" -I"C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\libraries\Wire\utility"
+build.path=C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328
+build.project_name=HouseSensorRH
+build.variant.path=C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\variants\standard
+build.core.path=C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\cores\arduino
+archive_file=core.a
+object_file=C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\Wire\utility\twi.c.o
+source_file=C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\libraries\Wire\utility\twi.c
+object_files="C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\HouseSensorRH.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\Arduino-DHT22-master\DHT22.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\ArduinoJson-master\ArduinoJson.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\FSM\FiniteStateMachine.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\HTU21D_Humidity\HTU21D.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\LowPower\LowPower.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHCRC.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHDatagram.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHGenericDriver.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHGenericSPI.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHHardwareSPI.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHMesh.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHNRFSPIDriver.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHReliableDatagram.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHRouter.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHSoftwareSPI.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHSPIDriver.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_ASK.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_NRF24.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_NRF905.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_RF22.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_RF24.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_RF69.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_RF95.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_Serial.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_TCP.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RF24-master\RF24.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\SPI\SPI.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\U8glib.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\chessengine.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_bitmap.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_circle.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_clip.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_api.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_api_16gr.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_attiny85_hw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_common.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_fast_parallel.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_hw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_hw_usart_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_no_en_parallel.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_parallel.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_port_d_wr.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_ssd_i2c.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_st7920_custom.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_st7920_hw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_st7920_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_std_sw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_sw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_t6963.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_uc_i2c.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_atmega_hw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_atmega_parallel.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_atmega_st7920_hw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_atmega_st7920_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_atmega_sw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_i2c.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_io.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_null.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_raspberrypi_hw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_raspberrypi_ssd_i2c.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_cursor.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_delay.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_a2_micro_printer.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_flipdisc_2x7.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_gprof.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ht1632.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ili9325d_320x240.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ks0108_128x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_lc7981_160x80.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_lc7981_240x128.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_lc7981_240x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_lc7981_320x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ld7032_60x32.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_null.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_pcd8544_84x48.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_pcf8812_96x65.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_sbn1661_122x32.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1306_128x32.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1306_128x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1309_128x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1322_nhd31oled_bw.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1322_nhd31oled_gr.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1325_nhd27oled_bw.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1325_nhd27oled_bw_new.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1325_nhd27oled_gr.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1325_nhd27oled_gr_new.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1327_96x96_gr.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1351_128x128.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7565_64128n.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7565_dogm128.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7565_dogm132.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7565_lm6059.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7565_lm6063.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7565_nhd_c12832.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7565_nhd_c12864.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7687_c144mvgd.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7920_128x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7920_192x32.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7920_202x32.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_t6963_128x128.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_t6963_128x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_t6963_240x128.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_t6963_240x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_tls8204_84x48.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_uc1601_c128032.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_uc1608_240x128.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_uc1608_240x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_uc1610_dogxl160.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_uc1611_dogm240.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_uc1611_dogxl240.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_uc1701_dogs102.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_uc1701_mini12864.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_ellipse.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_font.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_font_data.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_line.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_ll_api.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_page.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb14v1.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb16h1.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb16h2.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb16v1.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb16v2.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb32h1.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb8h1.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb8h1f.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb8h2.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb8h8.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb8v1.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb8v2.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pbxh16.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pbxh24.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_polygon.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_rect.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_rot.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_scale.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_state.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_u16toa.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_u8toa.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_virtual_screen.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\Wire\Wire.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\Wire\utility\twi.c.o" 
+</arduino.board.property_bag>
+        <arduino.build.mcu>atmega328p</arduino.build.mcu>
+        <arduino.build.f_cpu>8000000L</arduino.build.f_cpu>
+        <arduino.build.core>arduino</arduino.build.core>
+        <arduino.upload.protocol>arduino</arduino.upload.protocol>
+        <arduino.upload.speed>57600</arduino.upload.speed>
+        <arduino.upload.maximum_size>30720</arduino.upload.maximum_size>
+        <visualmicro.application.name>arduino16x</visualmicro.application.name>
+        <visualmicro.package.name>Breadboard</visualmicro.package.name>
+        <visualmicro.platform.name>avr</visualmicro.platform.name>
+        <arduino.upload.port>COM4</arduino.upload.port>
+      </VisualMicroSettings>
+    </VisualMicroSettings>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <ToolchainSettings>
+      <AvrGccCpp>
+  <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
+  <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
+  <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
+  <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+  <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
+  <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
+  <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+  <avrgcc.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>__AVR_ATmega328p__</Value>
+      <Value>__AVR_ATmega328P__</Value>
+      <Value>ARDUINO=164</Value>
+      <Value>ARDUINO_MAIN</Value>
+      <Value>F_CPU=8000000L</Value>
+      <Value>__AVR__</Value>
+      <Value>ARDUINO_ATMEGA328P</Value>
+      <Value>ARDUINO_ARCH_AVR</Value>
+    </ListValues>
+  </avrgcc.compiler.symbols.DefSymbols>
+  <avrgcc.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>C:/Program Files (x86)/Arduino/hardware/tools/avr/lib/gcc/avr/4.8.1/include</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/tools/avr//avr/include/avr/</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include/</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries</Value>
+      <Value>C:/Program Files (x86)/Visual Micro/Visual Micro for Arduino/Micro Platforms/default/debuggers</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries</Value>
+      <Value>C:/Program Files (x86)/Arduino/libraries</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/Wire/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/Wire</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/U8glib/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/U8glib</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/SPI/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/SPI</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/RF24-master/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/RF24-master</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/RadioHead/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/RadioHead</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/LowPower/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/LowPower</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/HTU21D_Humidity/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/HTU21D_Humidity</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/FSM/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/FSM</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/EEPROM/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/EEPROM</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/ArduinoJson-master/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/ArduinoJson-master</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/Arduino-DHT22-master/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/Arduino-DHT22-master</Value>
+      <Value>../../HouseSensorRH</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/variants/standard</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/cores/arduino</Value>
+    </ListValues>
+  </avrgcc.compiler.directories.IncludePaths>
+  <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
+  <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
+  <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
+  <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+  <avrgcccpp.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcccpp.compiler.general.ChangeDefaultCharTypeUnsigned>
+  <avrgcccpp.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcccpp.compiler.general.ChangeDefaultBitFieldUnsigned>
+  <avrgcccpp.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>__AVR_ATmega328p__</Value>
+      <Value>__AVR_ATmega328P__</Value>
+      <Value>ARDUINO=164</Value>
+      <Value>ARDUINO_MAIN</Value>
+      <Value>F_CPU=8000000L</Value>
+      <Value>__AVR__</Value>
+      <Value>ARDUINO_ATMEGA328P</Value>
+      <Value>ARDUINO_ARCH_AVR</Value>
+    </ListValues>
+  </avrgcccpp.compiler.symbols.DefSymbols>
+  <avrgcccpp.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>C:/Program Files (x86)/Arduino/hardware/tools/avr/lib/gcc/avr/4.8.1/include</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/tools/avr//avr/include/avr/</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include/</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries</Value>
+      <Value>C:/Program Files (x86)/Visual Micro/Visual Micro for Arduino/Micro Platforms/default/debuggers</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries</Value>
+      <Value>C:/Program Files (x86)/Arduino/libraries</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/Wire/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/Wire</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/U8glib/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/U8glib</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/SPI/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/SPI</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/RF24-master/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/RF24-master</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/RadioHead/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/RadioHead</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/LowPower/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/LowPower</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/HTU21D_Humidity/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/HTU21D_Humidity</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/FSM/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/FSM</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/EEPROM/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/EEPROM</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/ArduinoJson-master/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/ArduinoJson-master</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/Arduino-DHT22-master/utility</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/libraries/Arduino-DHT22-master</Value>
+      <Value>../../HouseSensorRH</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/variants/standard</Value>
+      <Value>C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/cores/arduino</Value>
+    </ListValues>
+  </avrgcccpp.compiler.directories.IncludePaths>
+  <avrgcccpp.compiler.optimization.level>Optimize (-O1)</avrgcccpp.compiler.optimization.level>
+  <avrgcccpp.compiler.optimization.PackStructureMembers>True</avrgcccpp.compiler.optimization.PackStructureMembers>
+  <avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcccpp.compiler.optimization.DebugLevel>Default (-g2)</avrgcccpp.compiler.optimization.DebugLevel>
+  <avrgcccpp.compiler.warnings.AllWarnings>True</avrgcccpp.compiler.warnings.AllWarnings>
+  <avrgcccpp.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcccpp.assembler.debugging.DebugLevel>
+</AvrGccCpp>
+    </ToolchainSettings>
+    <VMSETTING_IncludePaths>C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino;C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard;../../HouseSensorRH;C:/Users/myersjj/Documents/Arduino/libraries/Arduino-DHT22-master;C:/Users/myersjj/Documents/Arduino/libraries/Arduino-DHT22-master/utility;C:/Users/myersjj/Documents/Arduino/libraries/ArduinoJson-master;C:/Users/myersjj/Documents/Arduino/libraries/ArduinoJson-master/utility;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/EEPROM;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/EEPROM/utility;C:/Users/myersjj/Documents/Arduino/libraries/FSM;C:/Users/myersjj/Documents/Arduino/libraries/FSM/utility;C:/Users/myersjj/Documents/Arduino/libraries/HTU21D_Humidity;C:/Users/myersjj/Documents/Arduino/libraries/HTU21D_Humidity/utility;C:/Users/myersjj/Documents/Arduino/libraries/Narcoleptic;C:/Users/myersjj/Documents/Arduino/libraries/Narcoleptic/utility;C:/Users/myersjj/Documents/Arduino/libraries/RadioHead;C:/Users/myersjj/Documents/Arduino/libraries/RadioHead/utility;C:/Users/myersjj/Documents/Arduino/libraries/RF24-master;C:/Users/myersjj/Documents/Arduino/libraries/RF24-master/utility;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/utility;C:/Users/myersjj/Documents/Arduino/libraries/U8glib;C:/Users/myersjj/Documents/Arduino/libraries/U8glib/utility;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/utility;C:/Program Files (x86)/Arduino/libraries;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries;C:/Program Files (x86)/Visual Micro/Visual Micro for Arduino/Micro Platforms/default/debuggers;C:/Users/myersjj/Documents/Arduino/libraries;C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include/;C:/Program Files (x86)/Arduino/hardware/tools/avr//avr/include/avr/;C:/Program Files (x86)/Arduino/hardware/tools/avr/lib/gcc/avr/4.8.1/include;C:/Users/myersjj/Documents/Arduino/libraries/LowPower;C:/Users/myersjj/Documents/Arduino/libraries/LowPower/utility;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/cores/arduino;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/variants/standard;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/EEPROM;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/EEPROM/utility;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/SPI;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/SPI/utility;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/Wire;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries/Wire/utility;C:/Users/myersjj/Documents/Arduino/hardware/Breadboard/avr/libraries;C:/Users/myersjj/Documents/Arduino/libraries/VoltageReference-master;C:/Users/myersjj/Documents/Arduino/libraries/VoltageReference-master/utility;</VMSETTING_IncludePaths>
+    <VisualMicroSettings>
+      <VisualMicroSettings>
+        <arduino.board.name>atmega328</arduino.board.name>
+        <arduino.board.desc>ATmega328 (Internal 8MHz Clock ArduinoISP)</arduino.board.desc>
+        <arduino.board.property_bag>name=ATmega328 (Internal 8MHz Clock ArduinoISP)
+upload.tool=avrdude
+upload.protocol=arduino
+upload.maximum_size=30720
+upload.speed=57600
+bootloader.tool=avrdude
+bootloader.low_fuses=0xE2
+bootloader.high_fuses=0xDA
+bootloader.extended_fuses=0x05
+bootloader.path=atmega
+bootloader.file=ATmegaBOOT_168_atmega328_pro_8MHz.hex
+bootloader.unlock_bits=0x3F
+bootloader.lock_bits=0x0F
+build.mcu=atmega328p
+build.f_cpu=8000000L
+build.board=ATMEGA328P
+build.core=arduino
+build.variant=standard
+runtime.ide.path=C:\Program Files (x86)\Arduino
+build.system.path=C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\system
+runtime.ide.version=164
+target_package=Breadboard
+target_platform=avr
+runtime.hardware.path=C:\Users\myersjj\Documents\Arduino\hardware\Breadboard
+originalid=atmega328
+intellisense.tools.path={runtime.tools.avr-gcc.path}/
+intellisense.include.paths={intellisense.tools.path}avr/include/;{intellisense.tools.path}/avr/include/avr/;{intellisense.tools.path}lib\gcc\avr\4.8.1\include
+tools.atprogram.cmd.path=%AVRSTUDIO_EXE_PATH%\atbackend\atprogram
+tools.atprogram.cmd.setwinpath=true
+tools.atprogram.program.params.verbose=-v
+tools.atprogram.program.params.quiet=-q
+tools.atprogram.program.pattern="{cmd.path}" -d {build.mcu} {program.verbose} {program.extra_params} program -c -f "{build.path}\{build.project_name}.hex"
+tools.atprogram.program.xpattern="{cmd.path}" {AVRSTUDIO_BACKEND_CONNECTION} -d {build.mcu} {program.verbose} {program.extra_params} program -c -f "{build.path}\{build.project_name}.hex"
+version=1.6.0
+compiler.path={runtime.tools.avr-gcc.path}/bin/
+compiler.c.cmd=avr-gcc
+compiler.c.flags=-c -g -Os -w -ffunction-sections -fdata-sections -MMD
+compiler.c.elf.flags=-w -Os -Wl,--gc-sections
+compiler.c.elf.cmd=avr-gcc
+compiler.S.flags=-c -g -x assembler-with-cpp
+compiler.cpp.cmd=avr-g++
+compiler.cpp.flags=-c -g -Os -w -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -MMD
+compiler.ar.cmd=avr-ar
+compiler.ar.flags=rcs
+compiler.objcopy.cmd=avr-objcopy
+compiler.objcopy.eep.flags=-O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0
+compiler.elf2hex.flags=-O ihex -R .eeprom
+compiler.elf2hex.cmd=avr-objcopy
+compiler.ldflags=
+compiler.size.cmd=avr-size
+build.extra_flags=
+compiler.c.extra_flags=
+compiler.c.elf.extra_flags=
+compiler.S.extra_flags=
+compiler.cpp.extra_flags=
+compiler.ar.extra_flags=
+compiler.objcopy.eep.extra_flags=
+compiler.elf2hex.extra_flags=
+recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.c.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.cpp.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.S.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.S.flags} -mmcu={build.mcu} -DF_CPU={build.f_cpu} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {compiler.S.extra_flags} {build.extra_flags} {includes} "{source_file}" -o "{object_file}"
+recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compiler.ar.extra_flags} "{build.path}/{archive_file}" "{object_file}"
+recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}" {compiler.c.elf.flags} -mmcu={build.mcu} {compiler.c.elf.extra_flags} -o "{build.path}/{build.project_name}.elf" {object_files} "{build.path}/{archive_file}" "-L{build.path}" -lm
+recipe.objcopy.eep.pattern="{compiler.path}{compiler.objcopy.cmd}" {compiler.objcopy.eep.flags} {compiler.objcopy.eep.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.eep"
+recipe.objcopy.hex.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf2hex.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.hex"
+recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -A "{build.path}/{build.project_name}.elf"
+recipe.size.regex=^(?:\.text|\.data|\.bootloader)\s+([0-9]+).*
+recipe.size.regex.data=^(?:\.data|\.bss|\.noinit)\s+([0-9]+).*
+recipe.size.regex.eeprom=^(?:\.eeprom)\s+([0-9]+).*
+tools.avrdude.cmd.path={path}/bin/avrdude
+tools.avrdude.config.path={path}/etc/avrdude.conf
+tools.avrdude.upload.params.verbose=-v
+tools.avrdude.upload.params.quiet=-q -q
+tools.avrdude.upload.pattern="{cmd.path}" "-C{config.path}" {upload.verbose} -p{build.mcu} -c{upload.protocol} -P{serial.port} -b{upload.speed} -D "-Uflash:w:{build.path}/{build.project_name}.hex:i"
+tools.avrdude.program.params.verbose=-v
+tools.avrdude.program.params.quiet=-q -q
+tools.avrdude.program.pattern="{cmd.path}" "-C{config.path}" {program.verbose} -p{build.mcu} -c{protocol} {program.extra_params} "-Uflash:w:{build.path}/{build.project_name}.hex:i"
+tools.avrdude.erase.params.verbose=-v
+tools.avrdude.erase.params.quiet=-q -q
+tools.avrdude.erase.pattern="{cmd.path}" "-C{config.path}" {erase.verbose} -p{build.mcu} -c{protocol} {program.extra_params} -e -Ulock:w:{bootloader.unlock_bits}:m -Uefuse:w:{bootloader.extended_fuses}:m -Uhfuse:w:{bootloader.high_fuses}:m -Ulfuse:w:{bootloader.low_fuses}:m
+tools.avrdude.bootloader.params.verbose=-v
+tools.avrdude.bootloader.params.quiet=-q -q
+tools.avrdude.bootloader.pattern="{cmd.path}" "-C{config.path}" {bootloader.verbose} -p{build.mcu} -c{protocol} {program.extra_params} "-Uflash:w:{runtime.platform.path}/bootloaders/{bootloader.file}:i" -Ulock:w:{bootloader.lock_bits}:m
+build.usb_manufacturer=
+build.usb_flags=-DUSB_VID={build.vid} -DUSB_PID={build.pid} '-DUSB_MANUFACTURER={build.usb_manufacturer}' '-DUSB_PRODUCT={build.usb_product}'
+compiler.warning_flags=-w
+compiler.warning_flags.none=-w
+compiler.warning_flags.default=
+compiler.warning_flags.more=-Wall
+compiler.warning_flags.all=-Wall -Wextra
+tools.avrdude.path={runtime.tools.avrdude.path}
+vm.platform.root.path=C:\Program Files (x86)\Visual Micro\Visual Micro for Arduino\Micro Platforms\arduino16x
+runtime.tools.avrdude.path=C:\Program Files (x86)\Arduino\hardware\tools\avr
+runtime.tools.avrdude-6.0.1-arduino5.path=C:\Program Files (x86)\Arduino\hardware\tools\avr
+runtime.tools.avr-gcc.path=C:\Program Files (x86)\Arduino\hardware\tools\avr
+runtime.tools.avr-gcc-4.8.1-arduino5.path=C:\Program Files (x86)\Arduino\hardware\tools\avr
+ide.hint=Arduino 1.6.x ide with support for downloaded Board Manager custom tools and hardware
+ide.location.key=Arduino16x
+ide.location.ide.winreg=Arduino 1.6.x Application
+ide.location.sketchbook.winreg=Arduino 1.6.x Sketchbook
+ide.location.sketchbook.preferences=sketchbook.path
+ide.default.version=160
+ide.default.package=arduino
+ide.default.platform=avr
+ide.multiplatform=true
+ide.includes=arduino.h
+ide.platformswithoutpackage=false
+ide.includes.fallback=wprogram.h
+ide.extension=ino
+ide.extension.fallback=pde
+ide.versionGTEQ=160
+ide.exe=arduino.exe
+ide.hosts=atmel
+ide.url=http://arduino.cc/en/Main/Software
+ide.help.reference.path=reference\arduino.cc\en\Reference
+vm.debug=true
+software=ARDUINO
+ssh.user.name=root
+ssh.user.default.password=arduino
+ssh.host.wwwfiles.path=/www/sd
+build.working_directory={runtime.ide.path}
+ide.location.preferences=%VM_APPDATA_ROAMING%\arduino15\preferences.txt
+ide.location.preferences_fallback=%VM_APPDATA_ROAMING%\arduino\preferences.txt
+ide.location.contributions=%VM_APPDATA_ROAMING%\arduino15
+ide.contributions.boards.allow=true
+ide.contributions.boards.ignore_unless_rewrite_found=true
+ide.contributions.libraries.allow=true
+ide.contributions.boards.support.urls.wiki=https://github.com/arduino/Arduino/wiki/Unofficial-list-of-3rd-party-boards-support-urls
+ide.appid=arduino16x
+location.sketchbook=C:\Users\myersjj\Documents\Arduino
+vm.core.include=arduino.h
+vm.boardsource.path=C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr
+runtime.platform.path=C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr
+vm.platformname.name=avr
+build.arch=AVR
+build.architecture=avr
+vmresolved.compiler.path=C:\Program Files (x86)\Arduino\hardware\tools\avr\bin\
+vmresolved.tools.path=C:\Program Files (x86)\Arduino\hardware\tools\avr
+vm.runtime.compiler.showwarnings=false
+serial.port.file=COM4
+serial.port=COM4
+serial.port.num=4
+build.source.path=C:\Users\myersjj\myersware\HouseMonitor\HouseSensorRH\HouseSensorRH.ino
+extra.time.local=3674124
+includes= -I"C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\cores\arduino"  -I"C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\variants\standard"  -I"C:\Users\myersjj\Documents\Arduino\libraries\Arduino-DHT22-master"  -I"C:\Users\myersjj\Documents\Arduino\libraries\ArduinoJson-master"  -I"C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\libraries\EEPROM"  -I"C:\Users\myersjj\Documents\Arduino\libraries\FSM"  -I"C:\Users\myersjj\Documents\Arduino\libraries\HTU21D_Humidity"  -I"C:\Users\myersjj\Documents\Arduino\libraries\LowPower"  -I"C:\Users\myersjj\Documents\Arduino\libraries\RadioHead"  -I"C:\Users\myersjj\Documents\Arduino\libraries\RF24-master"  -I"C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\libraries\SPI"  -I"C:\Users\myersjj\Documents\Arduino\libraries\U8glib"  -I"C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\libraries\Wire"  -I"C:\Program Files (x86)\Arduino\libraries"  -I"C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries"  -I"C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\libraries"  -I"C:\Program Files (x86)\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers"  -I"C:\Users\myersjj\Documents\Arduino\libraries"  -I"C:\Users\myersjj\Documents\Arduino\libraries\U8glib\utility" -I"C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\libraries\Wire\utility"
+build.path=C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328
+build.project_name=HouseSensorRH
+build.variant.path=C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\variants\standard
+build.core.path=C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\cores\arduino
+archive_file=core.a
+object_file=C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\Wire\utility\twi.c.o
+source_file=C:\Users\myersjj\Documents\Arduino\hardware\Breadboard\avr\libraries\Wire\utility\twi.c
+object_files="C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\HouseSensorRH.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\Arduino-DHT22-master\DHT22.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\ArduinoJson-master\ArduinoJson.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\FSM\FiniteStateMachine.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\HTU21D_Humidity\HTU21D.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\LowPower\LowPower.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHCRC.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHDatagram.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHGenericDriver.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHGenericSPI.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHHardwareSPI.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHMesh.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHNRFSPIDriver.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHReliableDatagram.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHRouter.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHSoftwareSPI.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RHSPIDriver.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_ASK.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_NRF24.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_NRF905.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_RF22.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_RF24.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_RF69.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_RF95.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_Serial.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RadioHead\RH_TCP.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\RF24-master\RF24.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\SPI\SPI.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\U8glib.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\chessengine.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_bitmap.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_circle.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_clip.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_api.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_api_16gr.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_attiny85_hw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_common.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_fast_parallel.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_hw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_hw_usart_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_no_en_parallel.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_parallel.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_port_d_wr.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_ssd_i2c.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_st7920_custom.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_st7920_hw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_st7920_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_std_sw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_sw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_t6963.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_arduino_uc_i2c.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_atmega_hw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_atmega_parallel.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_atmega_st7920_hw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_atmega_st7920_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_atmega_sw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_i2c.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_io.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_null.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_raspberrypi_hw_spi.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_com_raspberrypi_ssd_i2c.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_cursor.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_delay.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_a2_micro_printer.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_flipdisc_2x7.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_gprof.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ht1632.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ili9325d_320x240.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ks0108_128x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_lc7981_160x80.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_lc7981_240x128.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_lc7981_240x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_lc7981_320x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ld7032_60x32.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_null.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_pcd8544_84x48.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_pcf8812_96x65.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_sbn1661_122x32.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1306_128x32.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1306_128x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1309_128x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1322_nhd31oled_bw.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1322_nhd31oled_gr.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1325_nhd27oled_bw.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1325_nhd27oled_bw_new.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1325_nhd27oled_gr.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1325_nhd27oled_gr_new.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1327_96x96_gr.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_ssd1351_128x128.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7565_64128n.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7565_dogm128.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7565_dogm132.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7565_lm6059.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7565_lm6063.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7565_nhd_c12832.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7565_nhd_c12864.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7687_c144mvgd.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7920_128x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7920_192x32.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_st7920_202x32.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_t6963_128x128.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_t6963_128x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_t6963_240x128.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_t6963_240x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_tls8204_84x48.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_uc1601_c128032.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_uc1608_240x128.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_uc1608_240x64.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_uc1610_dogxl160.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_uc1611_dogm240.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_uc1611_dogxl240.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_uc1701_dogs102.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_dev_uc1701_mini12864.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_ellipse.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_font.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_font_data.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_line.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_ll_api.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_page.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb14v1.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb16h1.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb16h2.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb16v1.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb16v2.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb32h1.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb8h1.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb8h1f.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb8h2.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb8h8.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb8v1.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pb8v2.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pbxh16.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_pbxh24.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_polygon.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_rect.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_rot.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_scale.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_state.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_u16toa.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_u8toa.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\U8glib\utility\u8g_virtual_screen.c.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\Wire\Wire.cpp.o" "C:\Users\myersjj\AppData\Local\V.Micro\Arduino\Builds\HouseSensorRH\atmega328\Wire\utility\twi.c.o" 
+</arduino.board.property_bag>
+        <arduino.build.mcu>atmega328p</arduino.build.mcu>
+        <arduino.build.f_cpu>8000000L</arduino.build.f_cpu>
+        <arduino.build.core>arduino</arduino.build.core>
+        <arduino.upload.protocol>arduino</arduino.upload.protocol>
+        <arduino.upload.speed>57600</arduino.upload.speed>
+        <arduino.upload.maximum_size>30720</arduino.upload.maximum_size>
+        <visualmicro.application.name>arduino16x</visualmicro.application.name>
+        <visualmicro.package.name>Breadboard</visualmicro.package.name>
+        <visualmicro.platform.name>avr</visualmicro.platform.name>
+        <arduino.upload.port>COM4</arduino.upload.port>
+      </VisualMicroSettings>
+    </VisualMicroSettings>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="HouseSensorRH.ino">
+      <SubType>compile</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Visual Micro\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DebugUtils.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Visual Micro\.HouseSensorRH.vsarduino.h">
+      <SubType>compile</SubType>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
+</Project>
