@@ -473,7 +473,7 @@ def recordEnvData(ser, con, today, sensorId, sensor_data):
             r = requests.get(
                 'https://datadrop.wolframcloud.com/api/v1.0/Add?bin={}&loc={}&tempF={}'.format(databin_id, sensorId, tempF))
         cur.execute(
-            "SELECT ID FROM Temperature Where LocationId=? ORDER BY id DESC LIMIT 1;", (sensorId,))
+            "SELECT * FROM Temperature Where LocationId=? ORDER BY id DESC LIMIT 1;", (sensorId,))
         row = cur.fetchone()
         if row == None:
             lastRowNum = 0
@@ -484,9 +484,7 @@ def recordEnvData(ser, con, today, sensorId, sensor_data):
             lastRowNum = row["id"]
             logger.debug("The Id of the last temp row is %d:%d" %
                          (sensorId, lastRowNum))
-            cur.execute("SELECT * FROM Temperature WHERE Id=:Id",
-                        {"Id": lastRowNum})
-            lastRow = cur.fetchone()
+            lastRow = row
             lastDate = lastRow["date"]
 
         # if hour changed, update summary column for that hour
@@ -496,10 +494,13 @@ def recordEnvData(ser, con, today, sensorId, sensor_data):
             if int(thisHour) != currentHour:
                 # save averages for last hour in its cell
                 # cell 16 for hour 0 temp, cell 17 for hour 0 humidity etc
-                sqlcmd = "UPDATE Temperature SET TempHour%s=? WHERE ID=?;" % (
+                sqlcmd = "UPDATE Temperature SET CurrentHour=?, ReadingsInHour=0, SumTempForHour=0.0, TempHour%s=? WHERE ID=?;" % (
                     currentHour)
-                cur.execute(sqlcmd, ('{0:0.1f}'.format(
+                cur.execute(sqlcmd, (thisHour, '{0:0.1f}'.format(
                     lastRow["AvgTempForHour"]), lastRowNum))
+                cur.execute(
+                    "SELECT * FROM Temperature WHERE ID=?;", (lastRowNum,))
+                lastRow = cur.fetchone()
 
         # if date changed, insert new row
         # logger.debug('lastDate=%s curDate=%s' % (lastDate, d.date().strftime('%m/%d/%Y').lstrip('0')))
@@ -531,6 +532,8 @@ def recordEnvData(ser, con, today, sensorId, sensor_data):
                 time.sleep(FREQUENCY_SECONDS)
                 return
         else:
+            # logger.debug('prev hour rolling data: %d:%f' %
+            #             (lastRow["ReadingsInHour"], lastRow["SumTempForHour"]))
             readingsInHour = int(lastRow["ReadingsInHour"]) + 1
             sumTempForHour = float(lastRow["SumTempForHour"]) + tempF
             avgTempForHour = sumTempForHour / readingsInHour
@@ -543,6 +546,8 @@ def recordEnvData(ser, con, today, sensorId, sensor_data):
 
         # print 'Summary data: %s %s %s %s %s %s' % (lastRow[9], lastRow[10],
         # lastRow[11], lastRow[12], lastRow[13], lastRow[14])
+        # logger.debug('new hour rolling data: %d:%f avg=%f' % (
+        #    readingsInHour, sumTempForHour, avgTempForHour))
         sqlcmd = "UPDATE Temperature SET CurrentHour=?, ReadingsInHour=?, SumTempForHour=?, AvgTempForHour=? WHERE ID=?;"
         cur.execute(sqlcmd,
                     (thisHour, readingsInHour, '{0:0.1f}'.format(sumTempForHour), '{0:0.1f}'.format(avgTempForHour),
@@ -579,7 +584,7 @@ def recordEnvData(ser, con, today, sensorId, sensor_data):
             r = requests.get(
                 'https://datadrop.wolframcloud.com/api/v1.0/Add?bin={}&loc={}&humidity={}'.format(databin_id, sensorId, humidity))
         cur.execute(
-            "SELECT ID FROM Humidity WHERE LocationId=? ORDER BY id DESC LIMIT 1;", (sensorId,))
+            "SELECT * FROM Humidity WHERE LocationId=? ORDER BY id DESC LIMIT 1;", (sensorId,))
         row = cur.fetchone()
         if row == None:
             lastRowNum = 0
@@ -589,9 +594,7 @@ def recordEnvData(ser, con, today, sensorId, sensor_data):
         else:
             lastRowNum = row["id"]
             logger.debug("The Id of the last humidity row is %d" % lastRowNum)
-            cur.execute("SELECT * FROM Humidity WHERE Id=:Id",
-                        {"Id": lastRowNum})
-            lastRow = cur.fetchone()
+            lastRow = row
             lastDate = lastRow["date"]
 
         # if hour changed, update summary column for that hour
@@ -601,10 +604,13 @@ def recordEnvData(ser, con, today, sensorId, sensor_data):
             if int(thisHour) != currentHour:
                 # save averages for last hour in its cell
                 # cell 16 for hour 0 temp, cell 17 for hour 0 humidity etc
-                sqlcmd = "UPDATE Humidity SET HumidityHour%s=? WHERE ID=?;" % (
+                sqlcmd = "UPDATE Humidity SET CurrentHour=?, ReadingsInHour=0, SumHumidityForHour=0.0, HumidityHour%s=? WHERE ID=?;" % (
                     currentHour)
                 cur.execute(
-                    sqlcmd, ('{0:0.1f}'.format(lastRow["AvgHumidityForHour"]), lastRowNum))
+                    sqlcmd, (thisHour, '{0:0.1f}'.format(lastRow["AvgHumidityForHour"]), lastRowNum))
+                cur.execute(
+                    "SELECT * FROM Humidity WHERE ID=?;", (lastRowNum,))
+                lastRow = cur.fetchone()
 
         # if date changed, insert new row
         # logger.debug('lastDate=%s curDate=%s' % (lastDate, d.date().strftime('%m/%d/%Y').lstrip('0')))
